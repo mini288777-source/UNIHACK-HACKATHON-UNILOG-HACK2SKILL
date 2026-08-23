@@ -22,7 +22,8 @@ import {
   UploadCloud,
   ArrowRight,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 
 export function App() {
@@ -153,12 +154,19 @@ export function App() {
 
   // Filtered & Searched Products
   const filteredProducts = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     return safeProductList.filter((p) => {
       const matchesSearch =
-        searchQuery === '' ||
-        (p.name && p.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (p.manufacturer && p.manufacturer.toLowerCase().includes(searchQuery.toLowerCase()));
+        q === '' ||
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.sku && p.sku.toLowerCase().includes(q)) ||
+        (p.manufacturer && p.manufacturer.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        (p.attributes && p.attributes.some((a) =>
+          (a.name && a.name.toLowerCase().includes(q)) ||
+          (a.normalized_value && a.normalized_value.toLowerCase().includes(q)) ||
+          (a.raw_value && a.raw_value.toLowerCase().includes(q))
+        ));
 
       const matchesCat =
         selectedCategory === 'ALL' ||
@@ -192,10 +200,18 @@ export function App() {
 
   return (
     <div className="h-screen overflow-hidden bg-background text-on-surface flex flex-col font-body selection:bg-secondary-container selection:text-on-secondary">
-      {/* Global Stitch Header */}
+      {/* Global Stitch Header with Live Connected Search Bar */}
       <Header
         activeTab={activeTab}
         productCount={totalSkus}
+        searchQuery={searchQuery}
+        onSearchChange={(query) => {
+          setSearchQuery(query);
+          setCurrentPage(1);
+          if (query.trim() && activeTab !== 'dashboard') {
+            navigateTo('dashboard');
+          }
+        }}
         onResetCatalog={handleResetCatalog}
       />
 
@@ -486,14 +502,29 @@ export function App() {
                   </div>
 
                   <div className="relative">
-                    <Search className="text-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
+                    <Search className="text-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
                     <input
                       type="text"
-                      placeholder="Search inventory..."
+                      placeholder="Search inventory, MPN, specs..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 pr-3 py-1.5 bg-surface-container-high border border-outline-variant/40 rounded-lg text-xs text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none focus:border-secondary-container w-full sm:w-64"
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="pl-9 pr-8 py-1.5 bg-surface-container-high border border-outline-variant/40 rounded-lg text-xs text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none focus:border-secondary-container w-full sm:w-64"
                     />
+                    {searchQuery && (
+                      <button
+                        onClick={() => {
+                          setSearchQuery('');
+                          setCurrentPage(1);
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface p-1 rounded-full cursor-pointer"
+                        title="Clear search"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
 

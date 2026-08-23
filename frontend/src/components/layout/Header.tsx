@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
-import { Search, Bell, HelpCircle, Info, Trash2 } from 'lucide-react';
+import { Search, Bell, HelpCircle, Info, Trash2, X } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'upload' | 'dashboard' | 'workspace';
   productCount: number;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
   onResetCatalog?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ productCount, onResetCatalog }) => {
+export const Header: React.FC<HeaderProps> = ({
+  productCount,
+  searchQuery = '',
+  onSearchChange,
+  onResetCatalog
+}) => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -46,15 +53,26 @@ export const Header: React.FC<HeaderProps> = ({ productCount, onResetCatalog }) 
           </span>
         </div>
 
-        {/* Stitch Enterprise Search Bar with ⌘K Badge */}
+        {/* Stitch Enterprise Search Bar with Live Query Binding */}
         <div className="flex-1 max-w-xl mx-6 hidden md:flex items-center">
           <div className="relative w-full group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant group-focus-within:text-secondary-container transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant group-focus-within:text-secondary-container transition-colors pointer-events-none" />
             <input
               type="text"
-              placeholder="Search SKU, MPN, Manufacturer, or Category Classpath..."
-              className="w-full bg-surface-container-high/90 border border-outline-variant/50 text-on-surface text-xs rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-secondary-container focus:ring-1 focus:ring-secondary-container transition-all placeholder:text-on-surface-variant/70 glass-panel"
+              value={searchQuery}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              placeholder="Search SKU, MPN, Manufacturer, Spec or Classpath..."
+              className="w-full bg-surface-container-high/90 border border-outline-variant/50 text-on-surface text-xs rounded-lg pl-10 pr-9 py-2 focus:outline-none focus:border-secondary-container focus:ring-1 focus:ring-secondary-container transition-all placeholder:text-on-surface-variant/70 glass-panel"
             />
+            {searchQuery && (
+              <button
+                onClick={() => onSearchChange?.('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface p-1 rounded-full hover:bg-surface-container-highest cursor-pointer"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
