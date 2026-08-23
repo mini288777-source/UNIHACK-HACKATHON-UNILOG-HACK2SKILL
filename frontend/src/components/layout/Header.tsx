@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Bell, HelpCircle, Info, RotateCcw } from 'lucide-react';
+import { Search, Bell, HelpCircle, Info, Trash2 } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'upload' | 'dashboard' | 'workspace';
@@ -13,6 +13,13 @@ export const Header: React.FC<HeaderProps> = ({ productCount, onResetCatalog }) 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleClear = () => {
+    if (onResetCatalog) {
+      onResetCatalog();
+      showToast('✨ Catalog & database reset! 0 SKUs active.');
+    }
   };
 
   return (
@@ -53,19 +60,21 @@ export const Header: React.FC<HeaderProps> = ({ productCount, onResetCatalog }) 
 
         {/* Right Controls */}
         <div className="flex items-center space-x-3">
+          {/* Active SKUs Badge */}
           <div className="flex items-center space-x-2 bg-surface-container-low border border-outline-variant/40 px-3 py-1.5 rounded-lg text-xs shadow-sm">
             <span className={`w-2 h-2 rounded-full ${productCount > 0 ? 'bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse' : 'bg-on-surface-variant/40'}`}></span>
             <span className="text-on-surface font-label font-bold">{productCount} SKUs Active</span>
           </div>
 
+          {/* Prominent CLEAR BUTTON right beside SKUs badge */}
           {onResetCatalog && (
             <button
-              onClick={onResetCatalog}
-              className="text-on-surface-variant hover:text-error transition-colors px-2.5 py-1.5 rounded-lg hover:bg-error-container/20 border border-outline-variant/30 text-[11px] font-bold font-label uppercase flex items-center gap-1.5 cursor-pointer"
-              title="Clear all catalog products & reset database"
+              onClick={handleClear}
+              className="px-3 py-1.5 rounded-lg bg-error-container/20 hover:bg-error-container/40 text-error border border-error/40 hover:border-error text-xs font-bold font-label uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+              title="Clear all catalog products, reset database & start brand new"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Reset</span>
+              <Trash2 className="w-3.5 h-3.5 text-error" />
+              <span>Clear</span>
             </button>
           )}
 
@@ -81,3 +90,4 @@ export const Header: React.FC<HeaderProps> = ({ productCount, onResetCatalog }) 
     </>
   );
 };
+export default Header;
