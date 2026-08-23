@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: unilogger-backend
+    environment:
+      - DATABASE_URL=postgresql://unilogger:unilogger_secret@db:5432/unilogger_db
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-dummy_key_for_dev}
+      - UPLOAD_DIR=/app/uploads
+      - ENVIRONMENT=production
+    volumes:
+      - uploads_data:/app/uploads
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: unilogger-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: unilogger-db
+    environment:
+      POSTGRES_USER: unilogger
+      POSTGRES_PASSWORD: unilogger_secret
+      POSTGRES_DB: unilogger_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unilogger -d unilogger_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  uploads_data:

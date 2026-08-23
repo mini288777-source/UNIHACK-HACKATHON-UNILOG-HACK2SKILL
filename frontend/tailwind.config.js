@@ -1,0 +1,85 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['DM Sans', 'sans-serif'],
+        heading: ['Space Grotesk', 'sans-serif'],
+        headline: ['Space Grotesk', 'sans-serif'],
+        display: ['Space Grotesk', 'sans-serif'],
+        body: ['DM Sans', 'sans-serif'],
+        label: ['Public Sans', 'sans-serif'],
+      },
+      colors: {
+        'surface': '#1f0f0c',
+        'secondary-container': '#feaa00',
+        'on-secondary': '#452b00',
+        'primary-fixed': '#ffdad4',
+        'surface-variant': '#44302c',
+        'secondary-fixed-dim': '#ffb950',
+        'surface-container-low': '#281714',
+        'on-secondary-fixed': '#291800',
+        'on-secondary-container': '#684300',
+        'on-primary-fixed-variant': '#910b00',
+        'tertiary-fixed-dim': '#a3c9ff',
+        'inverse-primary': '#bd1201',
+        'on-tertiary': '#00315c',
+        'on-secondary-fixed-variant': '#624000',
+        'primary-fixed-dim': '#ffb4a7',
+        'surface-dim': '#1f0f0c',
+        'secondary': '#ffcf8f',
+        'outline': '#ac8882',
+        'error': '#ffb4ab',
+        'tertiary-fixed': '#d3e4ff',
+        'surface-container-highest': '#44302c',
+        'surface-container-high': '#382522',
+        'on-tertiary-fixed-variant': '#004882',
+        'on-tertiary-fixed': '#001c38',
+        'on-error-container': '#ffdad6',
+        'on-surface-variant': '#e6bdb6',
+        'on-primary-fixed': '#400200',
+        'tertiary-container': '#0076cf',
+        'surface-tint': '#ffb4a7',
+        'surface-container': '#2d1b18',
+        'background': '#1f0f0c',
+        'secondary-fixed': '#ffddb3',
+        'primary-container': '#dd2e18',
+        'inverse-on-surface': '#3f2c28',
+        'tertiary': '#a3c9ff',
+        'outline-variant': '#5c403b',
+        'on-primary-container': '#fffafa',
+        'primary': '#ffb4a7',
+        'on-surface': '#fbdbd6',
+        'inverse-surface': '#fbdbd6',
+        'on-error': '#690005',
+        'on-background': '#fbdbd6',
+        'on-tertiary-container': '#fcfbff',
+        'surface-container-lowest': '#190a08',
+        'surface-bright': '#493431',
+        'error-container': '#93000a',
+        'on-primary': '#670500',
+        dark: {
+          900: '#DD2E18',
+          800: '#C22312',
+          700: '#A11A0D',
+          600: '#7F1308'
+        },
+        brand: {
+          500: '#FFAB00',
+          600: '#DD2E18',
+          700: '#B2200D'
+        },
+        accent: {
+          400: '#FFC400',
+          500: '#FFAB00',
+          600: '#DD2E18'
+        }
+      }
+    },
+  },
+  plugins: [],
+}

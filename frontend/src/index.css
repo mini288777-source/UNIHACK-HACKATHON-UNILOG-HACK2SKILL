@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #DD2E18;
+    --color-secondary: #FEAA00;
+    --color-accent: #FFAB00;
+    --color-bg-deep: #1F0F0C;
+    --color-panel: rgba(25, 10, 8, 0.65);
+    --color-border: rgba(92, 64, 59, 0.35);
+    --table-row-height: 36px;
+    --card-padding: 14px;
+    --grid-gap: 12px;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background-color: var(--color-bg-deep);
+    color: #FBDBD6;
+    overflow-x: hidden;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(221, 46, 24, 0.18) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(254, 170, 0, 0.12) 0px, transparent 50%),
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-heading, .font-headline, .font-display {
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  /* Accessibility Visible Focus State */
+  *:focus-visible {
+    outline: 2px solid var(--color-accent) !important;
+    outline-offset: 2px;
+  }
+}
+
+/* Stitch Glassmorphism Surface System */
+.glass-panel {
+  background: rgba(25, 10, 8, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(92, 64, 59, 0.35);
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.6),
+    inset 0 1px 1px rgba(255, 255, 255, 0.04);
+}
+
+.glass-panel-elevated {
+  background: rgba(45, 27, 24, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(172, 136, 130, 0.25);
+  box-shadow: 
+    0 20px 40px -15px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0px rgba(255, 255, 255, 0.06);
+}
+
+.glass-card {
+  background: rgba(40, 23, 20, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(92, 64, 59, 0.3);
+  box-shadow: 
+    0 8px 24px -8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0px rgba(255, 255, 255, 0.03);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(56, 37, 34, 0.6);
+  border-color: rgba(254, 170, 0, 0.45);
+  box-shadow: 
+    0 16px 36px -12px rgba(0, 0, 0, 0.7),
+    0 0 20px rgba(221, 46, 24, 0.2),
+    inset 0 1px 0px rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Dotted Border for Stitch Dropzone */
+.dotted-border {
+  border: 2px dashed #FEAA00;
+}
+
+/* Glow Rings & Indicators */
+.glow-ring-orange {
+  box-shadow: 0 0 14px rgba(254, 170, 0, 0.45);
+}
+
+.glow-ring-emerald {
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+}
+
+.glow-ring-rose {
+  box-shadow: 0 0 14px rgba(221, 46, 24, 0.5);
+}
+
+/* Health Ring Animation */
+.health-ring {
+  stroke-dasharray: 251.2;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Custom Floating Animations */
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(0.5deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* Custom High-Density Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(40, 23, 20, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(172, 136, 130, 0.4);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(254, 170, 0, 0.8);
+}

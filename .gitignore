@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+backend/.venv/
+.venv/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs & caches
+frontend/dist/
+frontend/.vite/
+.pytest_cache/
+backend/.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local Databases & Upload Storage
+backend/unilogger.db
+backend/verifact.db
+*.db
+*.sqlite
+*.sqlite3
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Environment & Secret Files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.log
+
+# Unnecessary / Internal Scratch Files
+NO NEED/
+"NO NEED"/
+NO_NEED/
+
+# OS & IDE Metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
