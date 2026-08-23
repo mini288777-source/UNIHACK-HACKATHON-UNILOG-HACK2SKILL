@@ -10,7 +10,8 @@ import {
   EnrichmentResult
 } from '../types';
 
-const API_BASE_URL = '/api/v1';
+const BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+const API_BASE_URL = `${BASE_URL}/api/v1`;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
