@@ -22,19 +22,20 @@ const apiClient = axios.create({
   timeout: 3000,
 });
 
-// Client-side in-memory & session storage cache for standalone Vercel demo
+// Client-side in-memory cache for standalone Vercel demo
 let clientSideProducts: Product[] = [];
-try {
-  const saved = sessionStorage.getItem('unilogger_products');
-  if (saved) {
-    clientSideProducts = JSON.parse(saved);
-  }
-} catch {}
 
 function saveClientSideProducts(prods: Product[]) {
   clientSideProducts = prods;
   try {
     sessionStorage.setItem('unilogger_products', JSON.stringify(prods));
+  } catch {}
+}
+
+export function clearLocalClientProducts() {
+  clientSideProducts = [];
+  try {
+    sessionStorage.removeItem('unilogger_products');
   } catch {}
 }
 

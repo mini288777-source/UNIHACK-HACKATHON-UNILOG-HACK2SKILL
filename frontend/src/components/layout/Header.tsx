@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Search, Bell, HelpCircle, Info } from 'lucide-react';
+import { Search, Bell, HelpCircle, Info, RotateCcw } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'upload' | 'dashboard' | 'workspace';
   productCount: number;
+  onResetCatalog?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ productCount }) => {
+export const Header: React.FC<HeaderProps> = ({ productCount, onResetCatalog }) => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -53,9 +54,20 @@ export const Header: React.FC<HeaderProps> = ({ productCount }) => {
         {/* Right Controls */}
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2 bg-surface-container-low border border-outline-variant/40 px-3 py-1.5 rounded-lg text-xs shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse"></span>
+            <span className={`w-2 h-2 rounded-full ${productCount > 0 ? 'bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse' : 'bg-on-surface-variant/40'}`}></span>
             <span className="text-on-surface font-label font-bold">{productCount} SKUs Active</span>
           </div>
+
+          {onResetCatalog && (
+            <button
+              onClick={onResetCatalog}
+              className="text-on-surface-variant hover:text-error transition-colors px-2.5 py-1.5 rounded-lg hover:bg-error-container/20 border border-outline-variant/30 text-[11px] font-bold font-label uppercase flex items-center gap-1.5 cursor-pointer"
+              title="Clear all catalog products & reset database"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Reset</span>
+            </button>
+          )}
 
           <button onClick={() => showToast('No new notifications')} className="text-on-surface-variant hover:text-secondary-container transition-colors p-1.5 rounded-lg hover:bg-surface-container-high/60 hidden sm:flex items-center justify-center cursor-pointer" title="Notifications">
             <Bell className="w-5 h-5 text-on-surface-variant hover:text-secondary-container transition-colors" />

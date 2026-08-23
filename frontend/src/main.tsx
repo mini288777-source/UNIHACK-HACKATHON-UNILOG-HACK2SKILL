@@ -56,6 +56,10 @@ class ErrorBoundary extends Component<Props, State> {
   }
 }
 
+try {
+  sessionStorage.removeItem('unilogger_products');
+} catch {}
+
 const container = document.getElementById('root');
 if (container) {
   // Prevent duplicate React root mount during Vite HMR

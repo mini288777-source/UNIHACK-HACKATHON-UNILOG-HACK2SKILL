@@ -4,7 +4,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { UploadPage } from './pages/UploadPage';
 import { ProductWorkspace } from './components/workspace/ProductWorkspace';
 import { Product, EvaluationResult } from './types';
-import { api } from './services/api';
+import { api, clearLocalClientProducts } from './services/api';
 import { gsap } from 'gsap';
 import {
   Table,
@@ -182,12 +182,21 @@ export function App() {
 
   const selectedProduct = safeProductList.find((p) => p.id === selectedProductId) || safeProductList[0] || null;
 
+  const handleResetCatalog = () => {
+    clearLocalClientProducts();
+    setProducts([]);
+    setSelectedProductId(null);
+    setEvalResult(null);
+    navigateTo('upload');
+  };
+
   return (
     <div className="h-screen overflow-hidden bg-background text-on-surface flex flex-col font-body selection:bg-secondary-container selection:text-on-secondary">
       {/* Global Stitch Header */}
       <Header
         activeTab={activeTab}
         productCount={totalSkus}
+        onResetCatalog={handleResetCatalog}
       />
 
       <div className="flex flex-1 h-[calc(100vh-4rem)] overflow-hidden relative">
