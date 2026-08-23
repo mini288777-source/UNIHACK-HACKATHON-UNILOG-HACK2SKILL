@@ -471,12 +471,33 @@ export default function App() {
                     <h3 className="text-sm font-bold text-on-surface font-headline">Loading SKU Records...</h3>
                   </div>
                 ) : filteredProducts.length === 0 ? (
-                  <div className="glass-panel rounded-xl p-12 text-center space-y-3">
-                    <span className="material-symbols-outlined text-on-surface-variant text-4xl animate-float">inventory_2</span>
-                    <h3 className="text-base font-bold text-on-surface font-headline">No SKUs Match Your Query</h3>
-                    <p className="text-xs text-on-surface-variant max-w-sm mx-auto">
-                      Try adjusting your search query or category filters, or upload a new catalog feed.
+                  <div className="glass-panel rounded-xl p-12 text-center space-y-4 border border-outline-variant/40">
+                    <span className="material-symbols-outlined text-secondary-container text-5xl animate-float">inventory_2</span>
+                    <h3 className="text-lg font-bold text-on-surface font-headline">
+                      {products.length === 0 ? 'No Catalog Data Ingested Yet' : 'No SKUs Match Your Query'}
+                    </h3>
+                    <p className="text-xs text-on-surface-variant max-w-md mx-auto">
+                      {products.length === 0
+                        ? 'Upload a raw CSV catalog feed (e.g. Unihack Sample Dataset) or technical spec PDF to extract normalized attributes and compute 4-factor confidence scores.'
+                        : 'Try adjusting your search query or category filters, or upload an additional catalog feed.'}
                     </p>
+                    <div className="flex items-center justify-center gap-3 pt-2">
+                      <button
+                        onClick={() => navigateTo('upload')}
+                        className="px-4 py-2.5 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary font-bold rounded-lg text-xs uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(254,170,0,0.3)] flex items-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">cloud_upload</span>
+                        <span>Upload Catalog Feed</span>
+                      </button>
+                      <button
+                        onClick={handleRunEvaluation}
+                        disabled={isRunningEval}
+                        className="px-4 py-2.5 bg-surface-container-high hover:bg-surface-container-highest text-secondary-container border border-secondary-container/40 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">verified</span>
+                        <span>{isRunningEval ? 'Running...' : 'Run Benchmark'}</span>
+                      </button>
+                    </div>
                   </div>
                 ) : viewMode === 'table' ? (
                   /* Dense Enterprise Catalog Table from Stitch Screen 1 */
