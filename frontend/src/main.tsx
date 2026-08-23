@@ -43,7 +43,7 @@ class ErrorBoundary extends Component<Props, State> {
                 window.location.hash = '#upload';
                 window.location.reload();
               }}
-              className="w-full py-2.5 bg-[#FEAA00] hover:bg-[#FFB950] text-[#452B00] font-bold text-xs uppercase tracking-wider rounded-lg transition-all shadow-lg"
+              className="w-full py-2.5 bg-[#FEAA00] hover:bg-[#FFB950] text-[#452B00] font-bold text-xs uppercase tracking-wider rounded-lg transition-all shadow-lg cursor-pointer"
             >
               Reload Application
             </button>
@@ -56,10 +56,20 @@ class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </StrictMode>,
-);
+const container = document.getElementById('root');
+if (container) {
+  // Prevent duplicate React root mount during Vite HMR
+  const rootKey = '__react_root__';
+  let root = (container as any)[rootKey];
+  if (!root) {
+    root = ReactDOM.createRoot(container);
+    (container as any)[rootKey] = root;
+  }
+  root.render(
+    <StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </StrictMode>
+  );
+}

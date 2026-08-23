@@ -183,14 +183,14 @@ export function App() {
   const selectedProduct = safeProductList.find((p) => p.id === selectedProductId) || safeProductList[0] || null;
 
   return (
-    <div className="min-h-screen bg-background text-on-surface flex flex-col font-body selection:bg-secondary-container selection:text-on-secondary">
+    <div className="h-screen overflow-hidden bg-background text-on-surface flex flex-col font-body selection:bg-secondary-container selection:text-on-secondary">
       {/* Global Stitch Header */}
       <Header
         activeTab={activeTab}
         productCount={totalSkus}
       />
 
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 h-[calc(100vh-4rem)] overflow-hidden relative">
         {/* Global Sidebar Navigation */}
         <Sidebar
           activeTab={activeTab}
