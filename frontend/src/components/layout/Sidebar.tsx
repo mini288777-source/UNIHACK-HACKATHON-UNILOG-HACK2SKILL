@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { UploadCloud, Boxes, Cpu, Plus, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: 'upload' | 'dashboard' | 'workspace';
@@ -43,26 +44,26 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, hasAc
           {/* Document Ingestion Tab */}
           <button
             onClick={() => setActiveTab('upload')}
-            className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+            className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
               activeTab === 'upload'
                 ? 'bg-secondary-container text-on-secondary-container shadow-[0_0_12px_rgba(254,170,0,0.3)]'
                 : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/60'
             }`}
           >
-            <span className="material-symbols-outlined text-[20px]">cloud_upload</span>
+            <UploadCloud className="w-5 h-5 text-current shrink-0" />
             <span>Document Ingestion</span>
           </button>
 
           {/* Product Catalog Tab */}
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
+            className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
               activeTab === 'dashboard'
                 ? 'bg-secondary-container text-on-secondary-container shadow-[0_0_12px_rgba(254,170,0,0.3)]'
                 : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/60'
             }`}
           >
-            <span className="material-symbols-outlined text-[20px]">inventory_2</span>
+            <Boxes className="w-5 h-5 text-current shrink-0" />
             <span>Product Catalog</span>
           </button>
 
@@ -72,14 +73,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, hasAc
             disabled={!hasActiveProduct}
             className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 ${
               activeTab === 'workspace'
-                ? 'bg-secondary-container text-on-secondary-container shadow-[0_0_12px_rgba(254,170,0,0.3)]'
+                ? 'bg-secondary-container text-on-secondary-container shadow-[0_0_12px_rgba(254,170,0,0.3)] cursor-pointer'
                 : hasActiveProduct
-                ? 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/60'
+                ? 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/60 cursor-pointer'
                 : 'text-on-surface-variant/30 cursor-not-allowed'
             }`}
           >
             <div className="flex items-center space-x-3">
-              <span className="material-symbols-outlined text-[20px]">insights</span>
+              <Cpu className="w-5 h-5 text-current shrink-0" />
               <span>Intelligence Workspace</span>
             </div>
             {hasActiveProduct && (
@@ -120,9 +121,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, hasAc
       <div className="mt-auto space-y-3 pt-4 border-t border-outline-variant/30">
         <button
           onClick={() => setActiveTab('upload')}
-          className="w-full flex items-center justify-center space-x-2 bg-secondary-container text-on-secondary px-4 py-2.5 rounded-lg font-label font-bold text-xs uppercase tracking-wider hover:bg-secondary-fixed-dim transition-colors shadow-[0_0_15px_rgba(254,170,0,0.3)] active:scale-[0.98]"
+          className="w-full flex items-center justify-center space-x-2 bg-secondary-container text-on-secondary px-4 py-2.5 rounded-lg font-label font-bold text-xs uppercase tracking-wider hover:bg-secondary-fixed-dim transition-colors shadow-[0_0_15px_rgba(254,170,0,0.3)] active:scale-[0.98] cursor-pointer"
         >
-          <span className="material-symbols-outlined text-[18px]">add</span>
+          <Plus className="w-4 h-4 text-on-secondary" />
           <span>New Analysis</span>
         </button>
 
@@ -130,7 +131,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, hasAc
         <div className="pt-2 flex items-center justify-between px-1">
           <div className="flex items-center space-x-2.5">
             <div className="w-7 h-7 rounded-full bg-surface-container-high border border-outline-variant/50 flex items-center justify-center text-secondary-container">
-              <span className="material-symbols-outlined text-[16px]">verified_user</span>
+              <ShieldCheck className="w-4 h-4 text-secondary-container" />
             </div>
             <div>
               <p className="text-xs font-medium text-on-surface truncate font-label">CHERRY</p>
@@ -139,10 +140,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, hasAc
           </div>
           <button
             onClick={() => setMotionEnabled(!motionEnabled)}
-            className="text-on-surface-variant hover:text-secondary-container transition-colors"
+            className="text-on-surface-variant hover:text-secondary-container transition-colors cursor-pointer"
             title={motionEnabled ? "Reduce Motion" : "Enable Motion"}
           >
-            <span className="material-symbols-outlined text-[18px]">{motionEnabled ? 'motion_photos_on' : 'motion_photos_off'}</span>
+            {motionEnabled ? (
+              <Eye className="w-4 h-4 text-on-surface-variant" />
+            ) : (
+              <EyeOff className="w-4 h-4 text-on-surface-variant" />
+            )}
           </button>
         </div>
       </div>

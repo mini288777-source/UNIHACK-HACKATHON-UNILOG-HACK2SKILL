@@ -3,6 +3,7 @@ import { ProductAttribute, TrustStatus, KnowledgeType } from '../../types';
 import { api } from '../../services/api';
 import { TrustBadge, KnowledgeBadge } from './TrustBadge';
 import { gsap } from 'gsap';
+import { FileEdit, X, Check, RotateCw, Save } from 'lucide-react';
 
 interface AttributeEditModalProps {
   attribute: ProductAttribute;
@@ -100,7 +101,7 @@ export const AttributeEditModal: React.FC<AttributeEditModalProps> = ({
         <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/30 bg-surface-container-lowest/70">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-primary-container/20 border border-secondary-container/30 flex items-center justify-center text-secondary-container">
-              <span className="material-symbols-outlined text-[18px]">edit_note</span>
+              <FileEdit className="w-4 h-4 text-secondary-container" />
             </div>
             <div className="text-left">
               <p className="text-[10px] uppercase font-bold text-on-surface-variant tracking-wider font-label">Auditable Spec Override</p>
@@ -109,9 +110,9 @@ export const AttributeEditModal: React.FC<AttributeEditModalProps> = ({
           </div>
           <button 
             onClick={handleClose} 
-            className="text-on-surface-variant hover:text-on-surface transition-colors p-1.5 rounded-lg hover:bg-surface-container-high"
+            className="text-on-surface-variant hover:text-on-surface transition-colors p-1.5 rounded-lg hover:bg-surface-container-high cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -156,7 +157,7 @@ export const AttributeEditModal: React.FC<AttributeEditModalProps> = ({
                   key={status}
                   type="button"
                   onClick={() => setTrustStatus(status)}
-                  className={`py-2 px-3 rounded-lg border text-[10px] font-bold font-label uppercase tracking-wider transition-all ${
+                  className={`py-2 px-3 rounded-lg border text-[10px] font-bold font-label uppercase tracking-wider transition-all cursor-pointer ${
                     trustStatus === status
                       ? 'bg-secondary-container/20 border-secondary-container text-secondary-container shadow-sm'
                       : 'bg-surface-container border-outline-variant/30 text-on-surface-variant hover:text-on-surface'
@@ -179,7 +180,7 @@ export const AttributeEditModal: React.FC<AttributeEditModalProps> = ({
                   key={ktype}
                   type="button"
                   onClick={() => setKnowledgeType(ktype)}
-                  className={`py-2 px-3 rounded-lg border text-[10px] font-bold transition-all ${
+                  className={`py-2 px-3 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
                     knowledgeType === ktype
                       ? 'bg-secondary-container/20 border-secondary-container text-secondary-container shadow-sm'
                       : 'bg-surface-container border-outline-variant/30 text-on-surface-variant hover:text-on-surface'
@@ -207,7 +208,7 @@ export const AttributeEditModal: React.FC<AttributeEditModalProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="px-3.5 py-2 rounded-lg text-xs font-bold text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors font-label uppercase"
+              className="px-3.5 py-2 rounded-lg text-xs font-bold text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors font-label uppercase cursor-pointer"
             >
               Cancel
             </button>
@@ -215,7 +216,7 @@ export const AttributeEditModal: React.FC<AttributeEditModalProps> = ({
               type="button"
               onClick={handleSave}
               disabled={isSaving || !hasChanges}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold font-label uppercase tracking-wider transition-all shadow-md ${
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold font-label uppercase tracking-wider transition-all shadow-md cursor-pointer ${
                 savedSuccess
                   ? 'bg-emerald-600 text-white'
                   : hasChanges
@@ -223,9 +224,13 @@ export const AttributeEditModal: React.FC<AttributeEditModalProps> = ({
                   : 'bg-surface-container text-on-surface-variant/40 border border-outline-variant/20 cursor-not-allowed'
               }`}
             >
-              <span className="material-symbols-outlined text-[16px]">
-                {savedSuccess ? 'check' : isSaving ? 'sync' : 'save'}
-              </span>
+              {savedSuccess ? (
+                <Check className="w-4 h-4" />
+              ) : isSaving ? (
+                <RotateCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
               <span>{isSaving ? 'Saving...' : savedSuccess ? 'Saved' : 'Save Override'}</span>
             </button>
           </div>

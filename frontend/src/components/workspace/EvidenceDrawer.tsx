@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { ProductAttribute } from '../../types';
 import { TrustBadge, KnowledgeBadge, ConfidenceBar } from './TrustBadge';
 import { gsap } from 'gsap';
+import { X, Quote, FileText } from 'lucide-react';
 
 interface EvidenceDrawerProps {
   attribute: ProductAttribute | null;
@@ -69,9 +70,9 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({ attribute, onClo
             </div>
             <button 
               onClick={handleClose} 
-              className="text-on-surface-variant hover:text-on-surface transition-colors p-1.5 rounded-lg hover:bg-surface-container-high"
+              className="text-on-surface-variant hover:text-on-surface transition-colors p-1.5 rounded-lg hover:bg-surface-container-high cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[20px]">close</span>
+              <X className="w-5 h-5" />
             </button>
           </div>
 
@@ -100,7 +101,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({ attribute, onClo
           {attribute.evidence?.text_quote ? (
             <div className="p-4 bg-surface-container rounded-xl border border-outline-variant/30 space-y-2.5 shadow-md">
               <p className="text-[10px] uppercase font-bold text-secondary-container tracking-widest flex items-center gap-1.5 font-label">
-                <span className="material-symbols-outlined text-[16px] text-secondary-container">format_quote</span>
+                <Quote className="w-4 h-4 text-secondary-container" />
                 <span>Source Text Quote Citation</span>
               </p>
               <blockquote className="text-xs text-on-surface italic leading-relaxed border-l-2 border-primary-container pl-3">
@@ -108,7 +109,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({ attribute, onClo
               </blockquote>
               {attribute.evidence.page_number && (
                 <div className="flex items-center gap-1.5 text-[10px] text-on-surface-variant pt-1 font-mono">
-                  <span className="material-symbols-outlined text-[14px]">description</span>
+                  <FileText className="w-3.5 h-3.5" />
                   <span>Document Reference: <strong className="text-on-surface font-semibold">Page {attribute.evidence.page_number}</strong></span>
                 </div>
               )}
@@ -150,7 +151,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({ attribute, onClo
         <div className="p-6 border-t border-outline-variant/30 bg-surface-container-lowest/60">
           <button 
             onClick={handleClose} 
-            className="w-full py-2.5 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary rounded-xl text-xs font-bold font-label uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(254,170,0,0.25)]"
+            className="w-full py-2.5 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary rounded-xl text-xs font-bold font-label uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(254,170,0,0.25)] cursor-pointer"
           >
             Acknowledge Proof
           </button>

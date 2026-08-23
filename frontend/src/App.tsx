@@ -1,122 +1,114 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { UploadPage } from './pages/UploadPage';
 import { ProductWorkspace } from './components/workspace/ProductWorkspace';
-import { api } from './services/api';
 import { Product, EvaluationResult } from './types';
+import { api } from './services/api';
 import { gsap } from 'gsap';
+import {
+  Table,
+  LayoutGrid,
+  RotateCw,
+  Award,
+  FileSpreadsheet,
+  Download,
+  Plus,
+  Boxes,
+  ShieldCheck,
+  AlertTriangle,
+  Factory,
+  Search,
+  UploadCloud,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
 
-export default function App() {
+export function App() {
   const [activeTab, setActiveTab] = useState<'upload' | 'dashboard' | 'workspace'>('upload');
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [evalResult, setEvalResult] = useState<EvaluationResult | null>(null);
   const [isRunningEval, setIsRunningEval] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 12;
 
   const mainContentRef = useRef<HTMLDivElement>(null);
 
-  const navigateTo = (tab: 'upload' | 'dashboard' | 'workspace', prodId?: string) => {
-    setActiveTab(tab);
-    if (prodId) setSelectedProductId(prodId);
-    window.history.pushState({ tab, prodId: prodId || selectedProductId }, '', `#${tab}`);
-  };
-
+  // Sync hash routing e.g. #upload, #dashboard, #workspace
   useEffect(() => {
-    const handlePopState = (e: PopStateEvent) => {
-      if (e.state && e.state.tab) {
-        setActiveTab(e.state.tab);
-        if (e.state.prodId) {
-          setSelectedProductId(e.state.prodId);
-        }
-      } else {
-        const hash = window.location.hash.replace('#', '');
-        if (hash === 'dashboard' || hash === 'workspace' || hash === 'upload') {
-          setActiveTab(hash as any);
-        } else {
-          setActiveTab('dashboard');
-        }
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash.startsWith('workspace/')) {
+        const pid = hash.replace('workspace/', '');
+        setSelectedProductId(pid);
+        setActiveTab('workspace');
+      } else if (['upload', 'dashboard', 'workspace'].includes(hash)) {
+        setActiveTab(hash as 'upload' | 'dashboard' | 'workspace');
       }
     };
 
-    window.addEventListener('popstate', handlePopState);
-    if (!window.history.state) {
-      window.history.replaceState({ tab: 'dashboard', prodId: selectedProductId }, '', '#dashboard');
-    }
-
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [selectedProductId]);
-
-  useEffect(() => {
-    fetchProducts();
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  useEffect(() => {
-    try {
-      const isReduced = typeof document !== 'undefined' && document.documentElement.classList.contains('motion-reduced');
-      if (isReduced || !mainContentRef.current) return;
-
-      gsap.fromTo(
-        mainContentRef.current,
-        { opacity: 0, y: 12 },
-        { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
-      );
-    } catch (e) {
-      console.warn('GSAP animation skipped:', e);
+  const navigateTo = (tab: 'upload' | 'dashboard' | 'workspace', productId?: string) => {
+    if (tab === 'workspace' && productId) {
+      setSelectedProductId(productId);
+      window.location.hash = `workspace/${productId}`;
+    } else {
+      window.location.hash = tab;
     }
-  }, [activeTab]);
-
-  useEffect(() => {
-    if (activeTab !== 'dashboard' || !Array.isArray(products) || products.length === 0) return;
-    try {
-      const isReduced = typeof document !== 'undefined' && document.documentElement.classList.contains('motion-reduced');
-      if (isReduced || !mainContentRef.current) return;
-
-      const ctx = gsap.context(() => {
-        gsap.fromTo(
-          '.animate-card',
-          { opacity: 0, y: 12 },
-          { opacity: 1, y: 0, duration: 0.25, stagger: { amount: 0.15 }, ease: 'power2.out' }
-        );
-      }, mainContentRef);
-
-      return () => {
-        try { ctx.revert(); } catch {}
-      };
-    } catch (e) {
-      console.warn('GSAP card animation skipped:', e);
-    }
-  }, [activeTab, viewMode, products, selectedCategory]);
+    setActiveTab(tab);
+  };
 
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
       const data = await api.listProducts(0, 1000);
-      const safeData = Array.isArray(data) ? data : [];
-      setProducts(safeData);
-      if (safeData.length > 0 && !selectedProductId) {
-        setSelectedProductId(safeData[0].id);
-      }
+      setProducts(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to fetch products:', err);
+      console.warn('Failed to load products from API:', err);
       setProducts([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleUploadSuccess = () => {
+  useEffect(() => {
     fetchProducts();
-    navigateTo('dashboard');
-  };
+  }, []);
 
-  const handleExportCatalog = (format: 'csv' | 'xlsx') => {
-    window.open(api.getCatalogExportUrl(format), '_blank');
-  };
+  // GSAP subtle page transitions
+  useEffect(() => {
+    try {
+      const isReduced = typeof document !== 'undefined' && document.documentElement.classList.contains('motion-reduced');
+      if (isReduced) return;
+
+      const ctx = gsap.context(() => {
+        gsap.fromTo(
+          '.animate-item',
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: 0.35, stagger: 0.05, ease: 'power2.out' }
+        );
+        gsap.fromTo(
+          '.animate-card',
+          { opacity: 0, scale: 0.98 },
+          { opacity: 1, scale: 1, duration: 0.25, stagger: 0.03, ease: 'power1.out' }
+        );
+      }, mainContentRef);
+
+      return () => {
+        try { ctx.revert(); } catch {}
+      };
+    } catch {}
+  }, [activeTab, viewMode, currentPage]);
 
   const handleRunEvaluation = async () => {
     setIsRunningEval(true);
@@ -124,58 +116,57 @@ export default function App() {
       const res = await api.getEvaluation();
       setEvalResult(res);
     } catch (err) {
-      console.error('Evaluation benchmark failed:', err);
+      console.error('Ground-truth evaluation benchmark failed:', err);
     } finally {
       setIsRunningEval(false);
     }
   };
 
-  // Real Database-driven KPI Computations with Defensive Array Checks
+  const handleExportCatalog = (format: 'csv' | 'xlsx') => {
+    const url = api.getCatalogExportUrl(format);
+    if (url.startsWith('data:')) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Unihack_252_Delivery_Catalog.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      window.open(url, '_blank');
+    }
+  };
+
+  // Safe guarded Product List calculations
   const safeProductList = useMemo(() => Array.isArray(products) ? products : [], [products]);
-  const totalSkus = safeProductList.length;
-  const avgHealthScore = totalSkus > 0
-    ? Math.round(safeProductList.reduce((acc, p) => acc + (p.health_score || 0), 0) / totalSkus)
-    : 0;
 
-  const flaggedProducts = useMemo(() => {
-    return safeProductList.filter(p => (p.health_score || 0) < 85);
-  }, [safeProductList]);
-
-  const uniqueSuppliers = useMemo(() => {
-    const suppliers = new Set(safeProductList.map(p => p.manufacturer).filter(Boolean));
-    return suppliers.size;
-  }, [safeProductList]);
-
+  // Dynamic Categories derived from dataset
   const categories = useMemo(() => {
-    const cats = new Set<string>();
-    safeProductList.forEach(p => {
+    const set = new Set<string>();
+    safeProductList.forEach((p) => {
       if (p.category) {
-        const top = p.category.split('>')[0].trim();
-        if (top) cats.add(top);
+        const topCat = p.category.split('>')[0].trim();
+        if (topCat) set.add(topCat);
       }
     });
-    return Array.from(cats);
+    return Array.from(set);
   }, [safeProductList]);
 
+  // Filtered & Searched Products
   const filteredProducts = useMemo(() => {
-    return safeProductList.filter(p => {
-      const matchesSearch = 
-        (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.sku || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.manufacturer || '').toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesCat = selectedCategory === 'ALL' || (p.category && p.category.startsWith(selectedCategory));
+    return safeProductList.filter((p) => {
+      const matchesSearch =
+        searchQuery === '' ||
+        (p.name && p.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (p.manufacturer && p.manufacturer.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const matchesCat =
+        selectedCategory === 'ALL' ||
+        (p.category && p.category.toLowerCase().includes(selectedCategory.toLowerCase()));
 
       return matchesSearch && matchesCat;
     });
   }, [safeProductList, searchQuery, selectedCategory]);
-
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 50;
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedCategory]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
   const paginatedProducts = useMemo(() => {
@@ -183,40 +174,60 @@ export default function App() {
     return filteredProducts.slice(start, start + pageSize);
   }, [filteredProducts, currentPage, pageSize]);
 
-  const selectedProduct = safeProductList.find(p => p.id === selectedProductId) || safeProductList[0];
+  // KPIs
+  const totalSkus = safeProductList.length;
+  const avgHealthScore = totalSkus > 0 ? Math.round(safeProductList.reduce((acc, p) => acc + (p.health_score || 0), 0) / totalSkus) : 0;
+  const flaggedProducts = safeProductList.filter((p) => (p.health_score || 0) < 85);
+  const uniqueSuppliers = new Set(safeProductList.map((p) => p.manufacturer).filter(Boolean)).size;
+
+  const selectedProduct = safeProductList.find((p) => p.id === selectedProductId) || safeProductList[0] || null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-on-surface font-body antialiased selection:bg-secondary-container selection:text-on-secondary">
-      <Header activeTab={activeTab} productCount={products.length} />
+    <div className="min-h-screen bg-background text-on-surface flex flex-col font-body selection:bg-secondary-container selection:text-on-secondary">
+      {/* Global Stitch Header */}
+      <Header
+        activeTab={activeTab}
+        productCount={totalSkus}
+      />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Global Sidebar Navigation */}
         <Sidebar
           activeTab={activeTab}
           setActiveTab={(tab) => navigateTo(tab)}
-          hasActiveProduct={Boolean(selectedProduct)}
+          hasActiveProduct={!!selectedProduct}
         />
 
-        <main className="flex-1 overflow-y-auto p-6 flex flex-col bg-background/50 relative">
-          {/* Ambient Background Glows from Stitch */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-            <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-primary-container/15 rounded-full blur-[140px]"></div>
-            <div className="absolute bottom-[-10%] right-[-5%] w-[35%] h-[35%] bg-secondary-container/10 rounded-full blur-[120px]"></div>
-          </div>
-
-          <div ref={mainContentRef} className="flex-1 relative z-10">
+        {/* Dynamic Route Content */}
+        <main
+          ref={mainContentRef}
+          className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-surface-container-lowest/40 backdrop-blur-3xl text-left"
+        >
+          <div className="max-w-7xl mx-auto space-y-6">
             {activeTab === 'upload' && (
-              <UploadPage onUploadSuccess={handleUploadSuccess} />
+              <UploadPage
+                onUploadSuccess={() => {
+                  fetchProducts();
+                  navigateTo('dashboard');
+                }}
+              />
             )}
 
             {activeTab === 'dashboard' && (
-              <div className="max-w-7xl mx-auto space-y-6 text-left">
-                {/* Product Inventory Title & Actions */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-6">
+                {/* Top Control Bar with Search, View Mode, Benchmark & 252-Column Exporters */}
+                <div className="animate-item flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-on-surface tracking-tight font-headline">
-                      Product Inventory
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-secondary-container/15 text-secondary-container border border-secondary-container/30 font-label">
+                        Universal Catalog Feed
+                      </span>
+                      <span className="text-xs text-on-surface-variant font-mono">252 Static Header Delivery Standard</span>
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-bold text-on-surface tracking-tight font-headline">
+                      Enterprise Product Catalog
                     </h2>
-                    <p className="text-xs text-on-surface-variant mt-0.5 font-label">
+                    <p className="text-on-surface-variant text-xs mt-0.5 font-body">
                       Managing <span className="text-secondary-container font-bold">{totalSkus}</span> verified industrial components across Unilog standard taxonomies
                     </p>
                   </div>
@@ -226,26 +237,26 @@ export default function App() {
                     <div className="flex items-center bg-surface-container-high rounded-lg border border-outline-variant/40 p-0.5">
                       <button
                         onClick={() => setViewMode('table')}
-                        className={`px-2.5 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1 ${
+                        className={`px-2.5 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                           viewMode === 'table'
                             ? 'bg-secondary-container text-on-secondary-container shadow-sm'
                             : 'text-on-surface-variant hover:text-on-surface'
                         }`}
                         title="Dense Table View"
                       >
-                        <span className="material-symbols-outlined text-[16px]">table_rows</span>
+                        <Table className="w-4 h-4" />
                         <span className="hidden sm:inline">Table</span>
                       </button>
                       <button
                         onClick={() => setViewMode('grid')}
-                        className={`px-2.5 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1 ${
+                        className={`px-2.5 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
                           viewMode === 'grid'
                             ? 'bg-secondary-container text-on-secondary-container shadow-sm'
                             : 'text-on-surface-variant hover:text-on-surface'
                         }`}
                         title="Card Grid View"
                       >
-                        <span className="material-symbols-outlined text-[16px]">grid_view</span>
+                        <LayoutGrid className="w-4 h-4" />
                         <span className="hidden sm:inline">Grid</span>
                       </button>
                     </div>
@@ -254,37 +265,39 @@ export default function App() {
                     <button
                       onClick={handleRunEvaluation}
                       disabled={isRunningEval}
-                      className="px-3.5 py-2 bg-surface-container-high hover:bg-surface-container-highest text-secondary-container border border-secondary-container/30 hover:border-secondary-container transition-all duration-200 text-xs font-bold flex items-center gap-1.5 rounded-lg shadow-sm font-label uppercase tracking-wider"
+                      className="px-3.5 py-2 bg-surface-container-high hover:bg-surface-container-highest text-secondary-container border border-secondary-container/30 hover:border-secondary-container transition-all duration-200 text-xs font-bold flex items-center gap-1.5 rounded-lg shadow-sm font-label uppercase tracking-wider cursor-pointer"
                     >
-                      <span className={`material-symbols-outlined text-[18px] ${isRunningEval ? 'animate-spin' : ''}`}>
-                        {isRunningEval ? 'sync' : 'verified'}
-                      </span>
+                      {isRunningEval ? (
+                        <RotateCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Award className="w-4 h-4" />
+                      )}
                       <span>{isRunningEval ? 'Benchmarking...' : 'Ground-Truth Benchmark'}</span>
                     </button>
 
                     {/* Dual 252-Column Exporters */}
                     <button
                       onClick={() => handleExportCatalog('xlsx')}
-                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition-all duration-200 flex items-center gap-1.5 shadow-sm"
+                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition-all duration-200 flex items-center gap-1.5 shadow-sm cursor-pointer"
                       title="Download 252-column XLSX workbook"
                     >
-                      <span className="material-symbols-outlined text-[18px]">file_download</span>
+                      <FileSpreadsheet className="w-4 h-4" />
                       <span>Export XLSX</span>
                     </button>
                     <button
                       onClick={() => handleExportCatalog('csv')}
-                      className="px-3.5 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold rounded-lg text-xs transition-all duration-200 flex items-center gap-1.5 border border-outline-variant/40"
+                      className="px-3.5 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold rounded-lg text-xs transition-all duration-200 flex items-center gap-1.5 border border-outline-variant/40 cursor-pointer"
                       title="Download 252-column CSV file"
                     >
-                      <span className="material-symbols-outlined text-[18px]">download</span>
+                      <Download className="w-4 h-4" />
                       <span>Export CSV</span>
                     </button>
 
                     <button
                       onClick={() => navigateTo('upload')}
-                      className="px-3.5 py-2 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary font-bold rounded-lg text-xs transition-all duration-200 flex items-center gap-1.5 shadow-[0_0_12px_rgba(254,170,0,0.3)]"
+                      className="px-3.5 py-2 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary font-bold rounded-lg text-xs transition-all duration-200 flex items-center gap-1.5 shadow-[0_0_12px_rgba(254,170,0,0.3)] cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[18px]">add</span>
+                      <Plus className="w-4 h-4" />
                       <span>Upload Feed</span>
                     </button>
                   </div>
@@ -295,7 +308,7 @@ export default function App() {
                   <div className="animate-item p-4 rounded-2xl glass-panel text-on-surface shadow-xl border border-secondary-container/40">
                     <div className="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-outline-variant/30">
                       <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-secondary-container text-[22px]">workspace_premium</span>
+                        <Award className="w-5 h-5 text-secondary-container" />
                         <h4 className="font-bold text-sm font-headline">Ground-Truth Benchmark Results</h4>
                         <span className="text-[10px] font-mono text-on-surface-variant font-bold">({evalResult.total_benchmark_rows || 0} Labeled Rows Evaluated)</span>
                       </div>
@@ -310,7 +323,7 @@ export default function App() {
 
                         <div className="group relative cursor-help px-2.5 py-1 rounded-lg bg-surface-container-lowest/80 border border-outline-variant/30 hover:border-secondary-container/50 transition-all">
                           <span className="text-secondary-container font-bold">LOV Match: {evalResult.lov_compliance_pct ?? 0}%</span>
-                          <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2 bg-surface-container-highest text-[10px] text-on-surface rounded-lg shadow-2xl border border-outline-variant/50 font-body z-50 pointer-events-none text-left">
+                          <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2 bg-surface-container-highest text-[10px] text-on-surface rounded-xl shadow-2xl border border-outline-variant/50 font-body z-50 pointer-events-none text-left">
                             <p className="font-bold text-secondary-container mb-0.5">LOV & UOM Compliance</p>
                             % matching allowed taxonomies, standardized options, and UOM units.
                           </div>
@@ -318,7 +331,7 @@ export default function App() {
 
                         <div className="group relative cursor-help px-2.5 py-1 rounded-lg bg-surface-container-lowest/80 border border-outline-variant/30 hover:border-blue-400/50 transition-all">
                           <span className="text-blue-400 font-bold">Char Limit: {evalResult.character_limit_compliance_pct ?? 0}%</span>
-                          <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2 bg-surface-container-highest text-[10px] text-on-surface rounded-lg shadow-2xl border border-outline-variant/50 font-body z-50 pointer-events-none text-left">
+                          <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2 bg-surface-container-highest text-[10px] text-on-surface rounded-xl shadow-2xl border border-outline-variant/50 font-body z-50 pointer-events-none text-left">
                             <p className="font-bold text-blue-400 mb-0.5">Character Limit Compliance</p>
                             Ensures text fields satisfy distributor length bounds (e.g. Short Desc ≤80 chars).
                           </div>
@@ -326,7 +339,7 @@ export default function App() {
 
                         <div className="group relative cursor-help px-2.5 py-1 rounded-lg bg-surface-container-lowest/80 border border-outline-variant/30 hover:border-purple-400/50 transition-all">
                           <span className="text-purple-400 font-bold">Speed: {evalResult.throughput_rows_per_sec ?? 0} rows/sec</span>
-                          <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2 bg-surface-container-highest text-[10px] text-on-surface rounded-lg shadow-2xl border border-outline-variant/50 font-body z-50 pointer-events-none text-left">
+                          <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2 bg-surface-container-highest text-[10px] text-on-surface rounded-xl shadow-2xl border border-outline-variant/50 font-body z-50 pointer-events-none text-left">
                             <p className="font-bold text-purple-400 mb-0.5">Processing Speed</p>
                             AI catalog extraction & enrichment throughput rate in rows per second.
                           </div>
@@ -352,7 +365,7 @@ export default function App() {
                   <div className="glass-panel rounded-xl p-4 flex flex-col justify-between">
                     <div className="flex items-center justify-between text-on-surface-variant">
                       <span className="text-xs font-label uppercase tracking-wider font-bold">Total SKUs</span>
-                      <span className="material-symbols-outlined text-secondary-container text-[20px]">inventory</span>
+                      <Boxes className="w-5 h-5 text-secondary-container" />
                     </div>
                     <div className="mt-2">
                       <span className="text-2xl font-bold font-headline text-on-surface">{totalSkus.toLocaleString()}</span>
@@ -364,7 +377,7 @@ export default function App() {
                   <div className="glass-panel rounded-xl p-4 flex flex-col justify-between">
                     <div className="flex items-center justify-between text-on-surface-variant">
                       <span className="text-xs font-label uppercase tracking-wider font-bold">Avg Health Score</span>
-                      <span className="material-symbols-outlined text-emerald-400 text-[20px]">health_and_safety</span>
+                      <ShieldCheck className="w-5 h-5 text-emerald-400" />
                     </div>
                     <div className="mt-2">
                       <span className="text-2xl font-bold font-headline text-on-surface">{avgHealthScore}%</span>
@@ -376,7 +389,7 @@ export default function App() {
                   <div className="glass-panel rounded-xl p-4 flex flex-col justify-between">
                     <div className="flex items-center justify-between text-on-surface-variant">
                       <span className="text-xs font-label uppercase tracking-wider font-bold">Flagged for Audit</span>
-                      <span className="material-symbols-outlined text-secondary-container text-[20px]">warning</span>
+                      <AlertTriangle className="w-5 h-5 text-secondary-container" />
                     </div>
                     <div className="mt-2">
                       <span className="text-2xl font-bold font-headline text-secondary-container">{flaggedProducts.length}</span>
@@ -388,7 +401,7 @@ export default function App() {
                   <div className="glass-panel rounded-xl p-4 flex flex-col justify-between">
                     <div className="flex items-center justify-between text-on-surface-variant">
                       <span className="text-xs font-label uppercase tracking-wider font-bold">Active Suppliers</span>
-                      <span className="material-symbols-outlined text-primary-fixed text-[20px]">factory</span>
+                      <Factory className="w-5 h-5 text-primary-fixed" />
                     </div>
                     <div className="mt-2">
                       <span className="text-2xl font-bold font-headline text-on-surface">{uniqueSuppliers}</span>
@@ -440,7 +453,7 @@ export default function App() {
                   <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
                     <button
                       onClick={() => setSelectedCategory('ALL')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all font-label uppercase tracking-wider ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all font-label uppercase tracking-wider cursor-pointer ${
                         selectedCategory === 'ALL'
                           ? 'bg-primary-container text-on-primary-container shadow-md'
                           : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-outline-variant/30'
@@ -452,7 +465,7 @@ export default function App() {
                       <button
                         key={cat}
                         onClick={() => setSelectedCategory(cat)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all font-label uppercase tracking-wider ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all font-label uppercase tracking-wider cursor-pointer ${
                           selectedCategory === cat
                             ? 'bg-primary-container text-on-primary-container shadow-md'
                             : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-outline-variant/30'
@@ -464,9 +477,7 @@ export default function App() {
                   </div>
 
                   <div className="relative">
-                    <span className="material-symbols-outlined text-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2 text-[18px]">
-                      search
-                    </span>
+                    <Search className="text-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
                     <input
                       type="text"
                       placeholder="Search inventory..."
@@ -485,7 +496,7 @@ export default function App() {
                   </div>
                 ) : filteredProducts.length === 0 ? (
                   <div className="glass-panel rounded-xl p-12 text-center space-y-4 border border-outline-variant/40">
-                    <span className="material-symbols-outlined text-secondary-container text-5xl animate-float">inventory_2</span>
+                    <Boxes className="w-12 h-12 text-secondary-container mx-auto animate-float" />
                     <h3 className="text-lg font-bold text-on-surface font-headline">
                       {products.length === 0 ? 'No Catalog Data Ingested Yet' : 'No SKUs Match Your Query'}
                     </h3>
@@ -497,17 +508,17 @@ export default function App() {
                     <div className="flex items-center justify-center gap-3 pt-2">
                       <button
                         onClick={() => navigateTo('upload')}
-                        className="px-4 py-2.5 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary font-bold rounded-lg text-xs uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(254,170,0,0.3)] flex items-center gap-2"
+                        className="px-4 py-2.5 bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary font-bold rounded-lg text-xs uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(254,170,0,0.3)] flex items-center gap-2 cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-[18px]">cloud_upload</span>
+                        <UploadCloud className="w-4 h-4" />
                         <span>Upload Catalog Feed</span>
                       </button>
                       <button
                         onClick={handleRunEvaluation}
                         disabled={isRunningEval}
-                        className="px-4 py-2.5 bg-surface-container-high hover:bg-surface-container-highest text-secondary-container border border-secondary-container/40 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2"
+                        className="px-4 py-2.5 bg-surface-container-high hover:bg-surface-container-highest text-secondary-container border border-secondary-container/40 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-[18px]">verified</span>
+                        <Award className="w-4 h-4" />
                         <span>{isRunningEval ? 'Running...' : 'Run Benchmark'}</span>
                       </button>
                     </div>
@@ -565,9 +576,9 @@ export default function App() {
                                   {p.attributes?.length ?? 0} specs
                                 </td>
                                 <td className="px-4 py-3 text-right">
-                                  <button className="text-secondary-container hover:text-secondary-fixed-dim font-bold inline-flex items-center gap-1 text-[11px] font-label uppercase tracking-wider">
+                                  <button className="text-secondary-container hover:text-secondary-fixed-dim font-bold inline-flex items-center gap-1 text-[11px] font-label uppercase tracking-wider cursor-pointer">
                                     <span>Inspect</span>
-                                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                                    <ArrowRight className="w-4 h-4" />
                                   </button>
                                 </td>
                               </tr>
@@ -607,7 +618,7 @@ export default function App() {
                         <div className="flex items-center justify-between pt-3 mt-3 border-t border-outline-variant/20 text-[11px]">
                           <span className="text-on-surface-variant">{p.attributes?.length ?? 0} Attributes</span>
                           <span className="text-secondary-container font-bold flex items-center gap-1">
-                            Inspect Record <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                            Inspect Record <ArrowRight className="w-3.5 h-3.5" />
                           </span>
                         </div>
                       </div>
@@ -625,9 +636,9 @@ export default function App() {
                       <button
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
-                        className="px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface disabled:opacity-40 disabled:cursor-not-allowed border border-outline-variant/30 transition-all font-bold flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface disabled:opacity-40 disabled:cursor-not-allowed border border-outline-variant/30 transition-all font-bold flex items-center gap-1 cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                        <ChevronLeft className="w-4 h-4" />
                         <span>Previous</span>
                       </button>
                       <span className="font-mono text-on-surface px-2">
@@ -636,10 +647,10 @@ export default function App() {
                       <button
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
-                        className="px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface disabled:opacity-40 disabled:cursor-not-allowed border border-outline-variant/30 transition-all font-bold flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface disabled:opacity-40 disabled:cursor-not-allowed border border-outline-variant/30 transition-all font-bold flex items-center gap-1 cursor-pointer"
                       >
                         <span>Next</span>
-                        <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                        <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -650,7 +661,7 @@ export default function App() {
             {activeTab === 'workspace' && selectedProduct && (
               <ProductWorkspace
                 product={selectedProduct}
-                onProductUpdate={fetchProducts}
+                onProductUpdated={fetchProducts}
                 onBack={() => navigateTo('dashboard')}
               />
             )}
@@ -660,3 +671,4 @@ export default function App() {
     </div>
   );
 }
+export default App;

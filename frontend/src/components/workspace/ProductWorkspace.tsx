@@ -5,93 +5,116 @@ import { EvidenceDrawer } from './EvidenceDrawer';
 import { AttributeEditModal } from './AttributeEditModal';
 import { api } from '../../services/api';
 import { gsap } from 'gsap';
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Table,
+  FileSpreadsheet,
+  Download,
+  Search,
+  Quote,
+  Edit3,
+  Check
+} from 'lucide-react';
 
 interface ProductWorkspaceProps {
   product: Product;
-  onProductUpdate?: () => void;
   onBack?: () => void;
+  onProductUpdated?: (updatedProduct: Product) => void;
 }
 
-export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ product, onProductUpdate, onBack }) => {
+export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({
+  product: initialProduct,
+  onBack,
+  onProductUpdated,
+}) => {
+  const [product, setProduct] = useState<Product>(initialProduct);
   const [selectedAttr, setSelectedAttr] = useState<ProductAttribute | null>(null);
   const [editingAttr, setEditingAttr] = useState<ProductAttribute | null>(null);
-  const [localAttrs, setLocalAttrs] = useState<ProductAttribute[]>(product.attributes || []);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeView, setActiveView] = useState<'attributes' | 'delivery_format'>('attributes');
-
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setLocalAttrs(product.attributes || []);
-  }, [product]);
+  const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const isReduced = document.documentElement.classList.contains('motion-reduced');
-    if (isReduced) return;
+    setProduct(initialProduct);
+  }, [initialProduct]);
 
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        '.animate-table-row',
-        { opacity: 0, y: 10 },
-        { opacity: 1, y: 0, duration: 0.3, stagger: 0.03, ease: 'power2.out' }
-      );
-    }, containerRef);
+  useEffect(() => {
+    try {
+      const isReduced = typeof document !== 'undefined' && document.documentElement.classList.contains('motion-reduced');
+      if (isReduced) return;
 
-    return () => ctx.revert();
-  }, [product.id, activeView]);
+      const ctx = gsap.context(() => {
+        gsap.fromTo(
+          '.animate-table-row',
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.25, stagger: 0.03, ease: 'power2.out' }
+        );
+      });
 
-  const handleAttrSaved = (updated: ProductAttribute) => {
-    setLocalAttrs(prev => prev.map(a => a.id === updated.id ? { ...a, ...updated } : a));
-    if (onProductUpdate) {
-      onProductUpdate();
-    }
+      return () => {
+        try { ctx.revert(); } catch {}
+      };
+    } catch {}
+  }, [activeView, product]);
+
+  const handleAttributeSaved = (updated: ProductAttribute) => {
+    const nextAttrs = product.attributes.map(a => a.id === updated.id ? updated : a);
+    const updatedProd = { ...product, attributes: nextAttrs };
+    setProduct(updatedProd);
+    if (onProductUpdated) onProductUpdated(updatedProd);
   };
 
-  const filteredAttrs = localAttrs.filter(a =>
-    a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (a.normalized_value || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const verifiedCount = localAttrs.filter(a => a.trust_status === 'VERIFIED').length;
-  const conflictCount = localAttrs.filter(a => a.trust_status === 'CONFLICT').length;
-  const reviewCount = localAttrs.filter(a => a.trust_status === 'NEEDS_REVIEW').length;
-
-  const handleExportProduct = (format: 'json' | 'csv' | 'delivery_format_csv') => {
-    window.open(api.getExportUrl(product.id, format as any), '_blank');
+  const handleExportProduct = (format: 'json' | 'csv' | 'delivery_format_csv' | 'xlsx') => {
+    const url = api.getExportUrl(product.id, format);
+    window.open(url, '_blank');
   };
 
   const handleExportFullCatalog = (format: 'csv' | 'xlsx') => {
-    window.open(api.getCatalogExportUrl(format), '_blank');
+    const url = api.getCatalogExportUrl(format);
+    if (url.startsWith('data:')) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Unihack_252_Delivery_Catalog.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      window.open(url, '_blank');
+    }
+    setDownloadSuccess(`Catalog exported in 252-Column ${format.toUpperCase()} format!`);
+    setTimeout(() => setDownloadSuccess(null), 3000);
   };
 
+  const verifiedCount = product.attributes.filter(a => a.trust_status === 'VERIFIED').length;
+  const reviewCount = product.attributes.filter(a => a.trust_status === 'NEEDS_REVIEW').length;
+  const conflictCount = (product.conflicts || []).length;
+
+  const filteredAttrs = product.attributes.filter(a =>
+    a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (a.normalized_value && a.normalized_value.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   return (
-    <div ref={containerRef} className="space-y-6 max-w-7xl mx-auto text-left">
-      {/* Evidence Drawer Overlay from Stitch */}
-      {selectedAttr && (
-        <EvidenceDrawer attribute={selectedAttr} onClose={() => setSelectedAttr(null)} />
+    <div className="space-y-6 text-left max-w-7xl mx-auto">
+      {downloadSuccess && (
+        <div className="fixed top-20 right-6 z-[100] bg-emerald-600 text-white px-4 py-2 rounded-lg shadow-xl text-xs font-bold font-label animate-fade-in flex items-center gap-2">
+          <Check className="w-4 h-4" />
+          <span>{downloadSuccess}</span>
+        </div>
       )}
 
-      {/* Attribute Edit Modal */}
-      {editingAttr && (
-        <AttributeEditModal
-          attribute={editingAttr}
-          productId={product.id}
-          onClose={() => setEditingAttr(null)}
-          onSaved={handleAttrSaved}
-        />
-      )}
-
-      {/* Product Header & Health Gauge Bento Grid from Stitch Screen 3 */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Product Overview */}
-        <div className="lg:col-span-2 glass-panel rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden border border-outline-variant/30">
-          <div className="relative z-10 space-y-3">
+      {/* Top Product Card: 3 Cols Info + 1 Col Radial Health Gauge */}
+      <section ref={headerRef} className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3 glass-panel rounded-2xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between border border-outline-variant/30">
+          <div className="space-y-3">
             {onBack && (
               <button
                 onClick={onBack}
-                className="inline-flex items-center gap-1.5 text-on-surface-variant hover:text-secondary-container transition-colors text-xs font-bold uppercase tracking-wider mb-1 font-label"
+                className="inline-flex items-center gap-1.5 text-on-surface-variant hover:text-secondary-container transition-colors text-xs font-bold uppercase tracking-wider mb-1 font-label cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                <ArrowLeft className="w-4 h-4" />
                 <span>Back to Catalog</span>
               </button>
             )}
@@ -104,7 +127,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ product, onP
                 {product.category || 'Industrial Hardware'}
               </span>
               <span className="px-2.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] uppercase tracking-wider font-bold flex items-center gap-1 font-label">
-                <span className="material-symbols-outlined text-[14px] text-emerald-400">verified</span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Provenance Backed</span>
               </span>
             </div>
@@ -140,7 +163,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ product, onP
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setActiveView('attributes')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold font-label uppercase tracking-wider transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold font-label uppercase tracking-wider transition-all cursor-pointer ${
                   activeView === 'attributes'
                     ? 'bg-secondary-container text-on-secondary-container shadow-md'
                     : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
@@ -150,13 +173,13 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ product, onP
               </button>
               <button
                 onClick={() => setActiveView('delivery_format')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold font-label uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold font-label uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeView === 'delivery_format'
                     ? 'bg-secondary-container text-on-secondary-container shadow-md'
                     : 'bg-surface-container text-on-surface-variant hover:text-on-surface'
                 }`}
               >
-                <span className="material-symbols-outlined text-[16px]">table_chart</span>
+                <Table className="w-4 h-4" />
                 <span>252-Column Unilog Spec</span>
               </button>
             </div>
@@ -164,32 +187,32 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ product, onP
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleExportProduct('json')}
-                className="bg-surface-container hover:bg-surface-container-high text-on-surface font-bold px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5 border border-outline-variant/30 font-label uppercase"
+                className="bg-surface-container hover:bg-surface-container-high text-on-surface font-bold px-3 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5 border border-outline-variant/30 font-label uppercase cursor-pointer"
                 title="Download this product as PIM-compatible JSON"
               >
                 <span>JSON</span>
               </button>
               <button
                 onClick={() => handleExportFullCatalog('xlsx')}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-md font-label uppercase"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-md font-label uppercase cursor-pointer"
                 title="Download 252-column XLSX workbook"
               >
-                <span className="material-symbols-outlined text-[16px]">file_download</span>
+                <FileSpreadsheet className="w-4 h-4" />
                 <span>Export XLSX</span>
               </button>
               <button
                 onClick={() => handleExportFullCatalog('csv')}
-                className="bg-surface-container hover:bg-surface-container-high text-on-surface font-bold px-3.5 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5 border border-outline-variant/30 font-label uppercase"
+                className="bg-surface-container hover:bg-surface-container-high text-on-surface font-bold px-3.5 py-1.5 rounded-lg text-xs transition-colors flex items-center gap-1.5 border border-outline-variant/30 font-label uppercase cursor-pointer"
                 title="Download 252-column CSV file"
               >
-                <span className="material-symbols-outlined text-[16px]">download</span>
+                <Download className="w-4 h-4" />
                 <span>Export CSV</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Right 1 Col: Radial Gauge Card from Stitch Screen 3 */}
+        {/* Right 1 Col: Radial Gauge Card */}
         <div className="glass-panel rounded-2xl p-6 flex flex-col items-center justify-center relative overflow-hidden border border-outline-variant/30 text-center">
           <div className="relative w-36 h-36 flex items-center justify-center mb-3">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -233,9 +256,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ product, onP
               Extracted Product Intelligence Specifications
             </h3>
             <div className="relative">
-              <span className="material-symbols-outlined text-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2 text-[16px]">
-                search
-              </span>
+              <Search className="text-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
               <input
                 type="text"
                 placeholder="Search specifications..."
@@ -300,9 +321,9 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ product, onP
                           <button
                             type="button"
                             onClick={() => setSelectedAttr(attr)}
-                            className="inline-flex items-center gap-1 text-secondary-container hover:text-secondary-fixed-dim font-bold text-xs font-label uppercase"
+                            className="inline-flex items-center gap-1 text-secondary-container hover:text-secondary-fixed-dim font-bold text-xs font-label uppercase cursor-pointer"
                           >
-                            <span className="material-symbols-outlined text-[15px]">format_quote</span>
+                            <Quote className="w-3.5 h-3.5" />
                             <span>Quote</span>
                           </button>
                         ) : (
@@ -313,10 +334,10 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ product, onP
                         <button
                           type="button"
                           onClick={() => setEditingAttr(attr)}
-                          className="p-1 rounded-md bg-surface-container text-on-surface-variant hover:text-secondary-container hover:bg-surface-container-high transition-colors"
+                          className="p-1 rounded-md bg-surface-container text-on-surface-variant hover:text-secondary-container hover:bg-surface-container-high transition-colors cursor-pointer"
                           title="Override attribute"
                         >
-                          <span className="material-symbols-outlined text-[16px]">edit</span>
+                          <Edit3 className="w-4 h-4" />
                         </button>
                       </td>
                     </tr>
@@ -332,7 +353,7 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ product, onP
           <div className="border-b border-outline-variant/30 pb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-bold text-on-surface font-headline flex items-center gap-2">
-                <span className="material-symbols-outlined text-emerald-400 text-[20px]">table_view</span>
+                <Table className="w-5 h-5 text-emerald-400" />
                 <span>252-Column Unilog Delivery Record Preview</span>
               </h3>
               <p className="text-xs text-on-surface-variant mt-0.5 font-body">
@@ -377,6 +398,23 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({ product, onP
             </div>
           </div>
         </div>
+      )}
+
+      {/* Slide-out Modals */}
+      {selectedAttr && (
+        <EvidenceDrawer
+          onClose={() => setSelectedAttr(null)}
+          attribute={selectedAttr}
+        />
+      )}
+
+      {editingAttr && (
+        <AttributeEditModal
+          onClose={() => setEditingAttr(null)}
+          attribute={editingAttr}
+          productId={product.id}
+          onSaved={handleAttributeSaved}
+        />
       )}
     </div>
   );

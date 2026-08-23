@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Search, Bell, HelpCircle, Info } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'upload' | 'dashboard' | 'workspace';
@@ -17,7 +18,7 @@ export const Header: React.FC<HeaderProps> = ({ productCount }) => {
     <>
       {toastMessage && (
         <div className="fixed top-20 right-6 z-[100] bg-surface-container-highest border border-outline-variant/50 text-on-surface px-4 py-2.5 rounded-lg shadow-xl text-sm font-label animate-fade-in flex items-center gap-2">
-          <span className="material-symbols-outlined text-[18px] text-secondary-container">info</span>
+          <Info className="w-4 h-4 text-secondary-container" />
           {toastMessage}
         </div>
       )}
@@ -40,9 +41,7 @@ export const Header: React.FC<HeaderProps> = ({ productCount }) => {
         {/* Stitch Enterprise Search Bar with ⌘K Badge */}
         <div className="flex-1 max-w-xl mx-6 hidden md:flex items-center">
           <div className="relative w-full group">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant group-focus-within:text-secondary-container transition-colors text-[20px]">
-              search
-            </span>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant group-focus-within:text-secondary-container transition-colors" />
             <input
               type="text"
               placeholder="Search SKU, MPN, Manufacturer, or Category Classpath..."
@@ -58,12 +57,12 @@ export const Header: React.FC<HeaderProps> = ({ productCount }) => {
             <span className="text-on-surface font-label font-bold">{productCount} SKUs Active</span>
           </div>
 
-          <button onClick={() => showToast('No new notifications')} className="text-on-surface-variant hover:text-secondary-container transition-colors p-1.5 rounded-lg hover:bg-surface-container-high/60 hidden sm:flex items-center justify-center">
-            <span className="material-symbols-outlined text-[20px]">notifications</span>
+          <button onClick={() => showToast('No new notifications')} className="text-on-surface-variant hover:text-secondary-container transition-colors p-1.5 rounded-lg hover:bg-surface-container-high/60 hidden sm:flex items-center justify-center cursor-pointer" title="Notifications">
+            <Bell className="w-5 h-5 text-on-surface-variant hover:text-secondary-container transition-colors" />
           </button>
 
-          <button onClick={() => showToast('Help documentation coming soon!')} className="text-on-surface-variant hover:text-secondary-container transition-colors p-1.5 rounded-lg hover:bg-surface-container-high/60 hidden sm:flex items-center justify-center">
-            <span className="material-symbols-outlined text-[20px]">help</span>
+          <button onClick={() => showToast('UniHack 252-Column Product Intelligence Documentation')} className="text-on-surface-variant hover:text-secondary-container transition-colors p-1.5 rounded-lg hover:bg-surface-container-high/60 hidden sm:flex items-center justify-center cursor-pointer" title="Help & Docs">
+            <HelpCircle className="w-5 h-5 text-on-surface-variant hover:text-secondary-container transition-colors" />
           </button>
         </div>
       </header>

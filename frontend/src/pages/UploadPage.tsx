@@ -4,6 +4,21 @@ import { ProcessingStatus } from '../components/upload/ProcessingStatus';
 import { api } from '../services/api';
 import { gsap } from 'gsap';
 import { EvaluationResult } from '../types';
+import {
+  Award,
+  CheckCircle2,
+  ListFilter,
+  Type,
+  Zap,
+  BookOpen,
+  Check,
+  FolderOpen,
+  Table,
+  FileText,
+  Play,
+  AlertCircle,
+  RotateCw
+} from 'lucide-react';
 
 interface UploadPageProps {
   onUploadSuccess: () => void;
@@ -20,18 +35,22 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const isReduced = document.documentElement.classList.contains('motion-reduced');
-    if (isReduced) return;
+    try {
+      const isReduced = typeof document !== 'undefined' && document.documentElement.classList.contains('motion-reduced');
+      if (isReduced) return;
 
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        '.animate-item',
-        { opacity: 0, y: 15 },
-        { opacity: 1, y: 0, duration: 0.35, stagger: 0.06, ease: 'power2.out' }
-      );
-    }, containerRef);
+      const ctx = gsap.context(() => {
+        gsap.fromTo(
+          '.animate-item',
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: 0.35, stagger: 0.06, ease: 'power2.out' }
+        );
+      }, containerRef);
 
-    return () => ctx.revert();
+      return () => {
+        try { ctx.revert(); } catch {}
+      };
+    } catch {}
   }, []);
 
   const handleFileSelect = async (file: File) => {
@@ -106,11 +125,13 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
         <button
           onClick={handleRunEvaluation}
           disabled={isRunningEval}
-          className="px-4 py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-secondary-container border border-secondary-container/30 hover:border-secondary-container transition-all duration-300 text-xs font-bold flex items-center gap-2 shadow-lg font-label uppercase tracking-wider"
+          className="px-4 py-2.5 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-secondary-container border border-secondary-container/30 hover:border-secondary-container transition-all duration-300 text-xs font-bold flex items-center gap-2 shadow-lg font-label uppercase tracking-wider cursor-pointer"
         >
-          <span className={`material-symbols-outlined text-[18px] ${isRunningEval ? 'animate-spin' : ''}`}>
-            {isRunningEval ? 'sync' : 'verified'}
-          </span>
+          {isRunningEval ? (
+            <RotateCw className="w-4 h-4 text-secondary-container animate-spin" />
+          ) : (
+            <Award className="w-4 h-4 text-secondary-container" />
+          )}
           <span>{isRunningEval ? 'Benchmarking...' : 'Run Ground-Truth Benchmark'}</span>
         </button>
       </div>
@@ -121,7 +142,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
           <div className="flex flex-wrap items-start justify-between gap-4 pb-3 border-b border-outline-variant/30">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-xl bg-secondary-container/20 border border-secondary-container/40 text-secondary-container shrink-0 mt-0.5">
-                <span className="material-symbols-outlined text-[24px]">workspace_premium</span>
+                <Award className="w-6 h-6 text-secondary-container" />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -136,7 +157,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
                     className="text-[11px] font-bold text-secondary-container hover:text-secondary-fixed flex items-center gap-1 bg-secondary-container/10 px-2.5 py-1 rounded-lg border border-secondary-container/30 hover:border-secondary-container transition-all"
                     title="Toggle metric explanation guide"
                   >
-                    <span className="material-symbols-outlined text-[15px]">info</span>
+                    <BookOpen className="w-3.5 h-3.5 text-secondary-container" />
                     <span>{showGuide ? 'Hide Guide' : 'What do these mean?'}</span>
                   </button>
                 </div>
@@ -151,7 +172,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
                 <span className="text-emerald-400 font-bold">Accuracy: {evalResult.overall_accuracy_pct ?? 0}%</span>
                 <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2.5 bg-surface-container-highest text-[11px] text-on-surface rounded-xl shadow-2xl border border-outline-variant/50 font-body z-50 pointer-events-none text-left">
                   <p className="font-bold text-emerald-400 mb-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                     Overall Field Accuracy
                   </p>
                   <p className="text-on-surface-variant text-[10px] leading-normal">
@@ -164,7 +185,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
                 <span className="text-secondary-container font-bold">LOV Match: {evalResult.lov_compliance_pct ?? 0}%</span>
                 <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2.5 bg-surface-container-highest text-[11px] text-on-surface rounded-xl shadow-2xl border border-outline-variant/50 font-body z-50 pointer-events-none text-left">
                   <p className="font-bold text-secondary-container mb-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">fact_check</span>
+                    <ListFilter className="w-3.5 h-3.5 text-secondary-container" />
                     List of Values (LOV) Compliance
                   </p>
                   <p className="text-on-surface-variant text-[10px] leading-normal">
@@ -177,7 +198,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
                 <span className="text-blue-400 font-bold">Char Limit: {evalResult.character_limit_compliance_pct ?? 0}%</span>
                 <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2.5 bg-surface-container-highest text-[11px] text-on-surface rounded-xl shadow-2xl border border-outline-variant/50 font-body z-50 pointer-events-none text-left">
                   <p className="font-bold text-blue-400 mb-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">short_text</span>
+                    <Type className="w-3.5 h-3.5 text-blue-400" />
                     Character Limit Compliance
                   </p>
                   <p className="text-on-surface-variant text-[10px] leading-normal">
@@ -190,7 +211,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
                 <span className="text-purple-400 font-bold">Speed: {evalResult.throughput_rows_per_sec ?? 0} rows/sec</span>
                 <div className="absolute hidden group-hover:block bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 p-2.5 bg-surface-container-highest text-[11px] text-on-surface rounded-xl shadow-2xl border border-outline-variant/50 font-body z-50 pointer-events-none text-left">
                   <p className="font-bold text-purple-400 mb-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">speed</span>
+                    <Zap className="w-3.5 h-3.5 text-purple-400" />
                     AI Processing Throughput
                   </p>
                   <p className="text-on-surface-variant text-[10px] leading-normal">
@@ -205,13 +226,13 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
           {showGuide && (
             <div className="mt-3 p-3.5 rounded-xl bg-surface-container-lowest/80 border border-outline-variant/30 text-xs font-body animate-fadeIn">
               <h5 className="font-bold text-on-surface text-xs mb-2 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-secondary-container text-[16px]">menu_book</span>
+                <BookOpen className="w-4 h-4 text-secondary-container" />
                 Metric Explanation & Benchmark Guide
               </h5>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="p-2.5 rounded-lg bg-surface-container-high/40 border border-emerald-500/20">
                   <div className="font-bold text-emerald-400 mb-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[15px]">verified</span>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                     Accuracy ({evalResult.overall_accuracy_pct ?? 0}%)
                   </div>
                   <p className="text-[11px] text-on-surface-variant leading-relaxed">
@@ -221,7 +242,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
 
                 <div className="p-2.5 rounded-lg bg-surface-container-high/40 border border-secondary-container/20">
                   <div className="font-bold text-secondary-container mb-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[15px]">rule</span>
+                    <ListFilter className="w-3.5 h-3.5 text-secondary-container" />
                     LOV Match ({evalResult.lov_compliance_pct ?? 0}%)
                   </div>
                   <p className="text-[11px] text-on-surface-variant leading-relaxed">
@@ -231,7 +252,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
 
                 <div className="p-2.5 rounded-lg bg-surface-container-high/40 border border-blue-400/20">
                   <div className="font-bold text-blue-400 mb-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[15px]">text_fields</span>
+                    <Type className="w-3.5 h-3.5 text-blue-400" />
                     Char Limit ({evalResult.character_limit_compliance_pct ?? 0}%)
                   </div>
                   <p className="text-[11px] text-on-surface-variant leading-relaxed">
@@ -241,7 +262,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
 
                 <div className="p-2.5 rounded-lg bg-surface-container-high/40 border border-purple-400/20">
                   <div className="font-bold text-purple-400 mb-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[15px]">bolt</span>
+                    <Zap className="w-3.5 h-3.5 text-purple-400" />
                     Speed ({evalResult.throughput_rows_per_sec ?? 0} rows/sec)
                   </div>
                   <p className="text-[11px] text-on-surface-variant leading-relaxed">
@@ -283,14 +304,14 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
 
         {enrichmentSummary && (
           <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-emerald-400">check_circle</span>
+            <Check className="w-4 h-4 text-emerald-400" />
             <span>{enrichmentSummary}</span>
           </div>
         )}
 
         {errorMessage && (
           <div className="mt-4 p-3 rounded-xl bg-error-container/20 border border-error/30 text-error text-xs flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-error">error</span>
+            <AlertCircle className="w-4 h-4 text-error shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -300,7 +321,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
       <div className="animate-item space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant font-label flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[16px] text-secondary-container">folder_open</span>
+            <FolderOpen className="w-4 h-4 text-secondary-container" />
             Supported Feed Formats & Benchmark Datasets
           </h3>
           <span className="text-[10px] text-on-surface-variant font-mono">Click card to test feed</span>
@@ -309,7 +330,13 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div 
             onClick={async () => {
-              const sampleContent = `Mfg_Part_Num,Part_Desc,Brand_Name,Category,Raw_UOM,Price\nDIN933-M8-30,Hex Cap Screw M8x30mm Full Thread Stainless Steel A2-70,FASTENCO,Fasteners,8mm x 30mm,12.50\n48-22-8424,PACKOUT Modular Tool Box System Polymer Heavy Duty,MILWAUKEE,Storage,22 in x 16 in,89.00\nDCD791B,20V MAX XR Lithium-Ion Brushless 1/2 in Compact Drill Driver,DEWALT,Power Tools,1/2 in,139.00`;
+              const sampleContent = `Mfg_Part_Num,Part_Desc,Brand_Name,Category,Raw_UOM,Price
+DIN933-M8-30,Hex Cap Screw M8x30mm Full Thread Stainless Steel A2-70,FASTENCO,Fasteners,8mm x 30mm,12.50
+48-22-8424,PACKOUT Modular Tool Box System Polymer Heavy Duty,MILWAUKEE,Storage,22 in x 16 in,89.00
+DCD791B,20V MAX XR Lithium-Ion Brushless 1/2 in Compact Drill Driver,DEWALT,Power Tools,1/2 in,139.00
+D0724R,7-1/4 IN 24T FRAMING BLADE,Freud Inc (2435),Abrasives,7-1/4 in,14.99
+RTEX-50,Trex Transcend 50.25 in Decking Composite Board Vintage Lantern,Trex Company Inc,Building Materials,50.25 in,42.50
+XE50T12ST45U1,50 Gallon 4500W Electric Water Heater 240V,Rheem Water Heaters (9021),Appliances,50 gal,629.00`;
               const blob = new Blob([sampleContent], { type: 'text/csv' });
               const sampleFile = new File([blob], 'Unihack_Sample_Dataset_Input.csv', { type: 'text/csv' });
               handleFileSelect(sampleFile);
@@ -317,7 +344,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
             className="glass-card rounded-xl p-4 flex items-start gap-3 cursor-pointer hover:border-secondary-container/60 hover:shadow-lg transition-all group relative overflow-hidden"
           >
             <div className="p-2.5 rounded-lg bg-primary-container/20 text-secondary-container border border-secondary-container/30 shrink-0 group-hover:scale-105 transition-transform">
-              <span className="material-symbols-outlined text-[24px]">table_chart</span>
+              <Table className="w-6 h-6 text-secondary-container" />
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between gap-2">
@@ -326,7 +353,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
                   <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">1,000 SKUs</span>
                 </div>
                 <span className="text-[10px] font-bold text-secondary-container opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
-                  Run <span className="material-symbols-outlined text-[12px]">play_arrow</span>
+                  Run <Play className="w-3 h-3 text-secondary-container fill-secondary-container" />
                 </span>
               </div>
               <p className="text-[11px] text-on-surface-variant mt-1 leading-relaxed">
@@ -337,21 +364,18 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
 
           <div 
             onClick={async () => {
-              const pdfBase64 = "JVBERi0xLjcKJcK1wrYKJSBXcml0dGVuIGJ5IE11UERGIDEuMjguMgoKMSAwIG9iago8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFIvSW5mbzw8L1Byb2R1Y2VyKE11UERGIDEuMjguMik+Pj4+CmVuZG9iagoKMiAwIG9iago8PC9UeXBlL1BhZ2VzL0NvdW50IDIvS2lkc1s0IDAgUiA4IDAgUl0+PgplbmRvYmoKCjMgMCBvYmoKPDwvRm9udDw8L2hlbHYgNSAwIFI+Pj4+CmVuZG9iagoKNCAwIG9iago8PC9UeXBlL1BhZ2UvTWVkaWFCb3hbMCAwIDU5NSA4NDJdL1JvdGF0ZSAwL1Jlc291cmNlcyAzIDAgUi9QYXJlbnQgMiAwIFIvQ29udGVudHNbNiAwIFJdPj4KZW5kb2JqCgo1IDAgb2JqCjw8L1R5cGUvRm9udC9TdWJ0eXBlL1R5cGUxL0Jhc2VGb250L0hlbHZldGljYS9FbmNvZGluZy9XaW5BbnNpRW5jb2Rpbmc+PgplbmRvYmoKCjYgMCBvYmoKPDwvTGVuZ3RoIDYxNi9GaWx0ZXIvRmxhdGVEZWNvZGU+PgpzdHJlYW0KeNp9VD2P2zAM3f0rPBdoK4lfFnDoULRLtwLeDh1ytowb2qFLf38fKSf23aVNkFimRPLx8VHD7+HzPOQx4ZtHSaPVMs6/ho/P7eefMedx3sbHB85MvLKUxJUbs4iQ4BVvmRdYlbNbWLArUoRgI95K+/Rj/jak8X2WDznzOH8ZHh+EVZR00qYVz6wegTWb/9wuKsYlPRnsE86YTmUVMraCvaaGk1Psifmz6KYLdimyze+A+FhJAs7NMTMQlgScCTgJ2BU/AnLGc+NGl7OXeVQ2IHUs3IBzVaFLzwukCqoODGFTPtBgtVKmVJLvk1CC/3pkYIqKBdVtVqxGZHUGwtoQtxh4pHaucH//T+W8AkcDbsRy7CbOmpWID4tX4X1EBt/rrNa9C2/ynxghfkJrU9ncO86s3mVnaeclVFJWnrjgv1e/euXePSF8EvG9HkFb3gU5FFUU8QzvmWE/d8br8+wHaigjhaIqag5FYb8CVwtUhpPZMUbvdxThBb2p87Co80C7DerT5Vx3nANbiFuiw56dQpftVS5XEvpD1dNcuRKfBORE3kx2ihw8R6Slo3upcI8IWMk1xKskzYg4cSaw6/ZS73LpGFafRKGua9R85q8B7Rp1d/aQKbLmvbbald459oywhzq7ml3FgaP3t76o5xQJeF0l5JNaJkvXGKWRlNezsJlGR4EodLic5xy5lt1brghOvrfJEzBpl1C3Kx+z0bsKVS/eJ18DCd2qsX/HilXcPD7J4OBp91Lg5zd+GnxWv738lPfKc8Oi+5R3RpauuMB087h/a0H55jcuGEtxr/bJ+ToP34e/6wpLVQplbmRzdHJlYW0KZW5kb2JqCgo3IDAgb2JqCjw8L0ZvbnQ8PC9oZWx2IDUgMCBSPj4+PgplbmRvYmoKCjggMCBvYmoKPDwvVHlwZS9QYWdlL01lZGlhQm94WzAgMCA1OTUgODQyXS9Sb3RhdGUgMC9SZXNvdXJjZXMgNyAwIFIvUGFyZW50IDIgMCBSL0NvbnRlbnRzWzkgMCBSXT4+CmVuZG9iagoKOSAwIG9iago8PC9MZW5ndGggNDY3L0ZpbHRlci9GbGF0ZURlY29kZT4+CnN0cmVhbQp42rVUPY/bMAzd/Ss0F2gr8dMGihuKdulWwFvRIWfLuOE63HK//x6lFHFyCdKlEBLb1CP5+EhpeBm+zkNJGaskzcknSvOf4fNTfX5NpaR5S7++SBGWVZSyTFJFVJUVn/gqssBqUsIiil1VUoaNZaP68Hv+MeT0seinUiTN3wZEMyvOLqZWTZ0Ca5utnmEXm4zwW2xyAZlMRlkZe2oMu+HHR9xmFb5rfDl8fKT86EAjjrmBLVPLP39ADac3zWC+RRUCzhEhXls1rMyHPRJxNxNHbg9kReTVlA/hxYUzniNqGGPPNTAalRWwq6hBUScfbYoFrZg5s5xydP6hA3yKLRFbg8cl7lKjJSqU4Lf0vFDgcM4teCFUBud1V1VnWA3/yCrNQ6KzQE/IK1dVY83oLwNnoRQ6Hj5beGFPoeIKG+m0V1CiN607RqFP43xUEb09Ww511EID6P1u9wo25gdTcspG6/9ftzuHyhzvxeRGbf80GR27z6NiI+JqRG7TjZpxBsZbunChynf0+4u9mIw+75vhzMmCZ8t42ztmCzEeYwbuZgJqp93YZ6/dAF0JOk52NX/vLSPOJ7X51HuZOvb6ycd95dJuBsrtturT830efg5v9n8kvQplbmRzdHJlYW0KZW5kb2JqCgp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDQyIDAwMDAwIG4gCjAwMDAwMDAxMjAgMDAwMDAgbiAKMDAwMDAwMDE3OCAwMDAwMCBuIAowMDAwMDAwMjE5IDAwMDAwIG4gCjAwMDAwMDAzMjYgMDAwMDAgbiAKMDAwMDAwMDQxNSAwMDAwMCBuIAowMDAwMDAxMTAwIDAwMDAwIG4gCjAwMDAwMDExNDEgMDAwMDAgbiAKMDAwMDAwMTI0OCAwMDAwMCBuIAoKdHJhaWxlcgo8PC9TaXplIDEwL1Jvb3QgMSAwIFIvSURbPDZGMkQ3MzQ2QzNBMTJGNjJDMkIzQzM5QkMzODFDMzkxPjxDNDJFNzEwQUEzMzY2MkMyOUJDQTIzNjlENDQ2RTQwMz5dPj4Kc3RhcnR4cmVmCjE3ODQKJSVFT0YK";
-              const binaryStr = atob(pdfBase64);
-              const len = binaryStr.length;
-              const bytes = new Uint8Array(len);
-              for (let i = 0; i < len; i++) {
-                bytes[i] = binaryStr.charCodeAt(i);
-              }
-              const blob = new Blob([bytes], { type: 'application/pdf' });
-              const sampleFile = new File([blob], 'Fastener_DIN933_Spec.pdf', { type: 'application/pdf' });
+              const sampleFastenerContent = `Mfg_Part_Num,Part_Desc,Brand_Name,Category,Raw_UOM,Price
+DIN933-M8-30,Hexagon Head Cap Screw M8x30mm Full Thread Stainless Steel A2-70,FASTENCO,Fasteners,8mm x 30mm,12.50
+ISO4017-M10-40,ISO 4017 Hexagon Head Bolt M10 x 40mm Grade 8.8 Zinc Plated,BOLTMASTER,Fasteners,10mm x 40mm,8.75
+DIN912-M6-25,Socket Head Cap Screw M6 x 25mm 12.9 High Tensile Steel,HEXFAST,Fasteners,6mm x 25mm,14.20`;
+              const blob = new Blob([sampleFastenerContent], { type: 'text/csv' });
+              const sampleFile = new File([blob], 'Fastener_DIN933_Spec.csv', { type: 'text/csv' });
               handleFileSelect(sampleFile);
             }}
             className="glass-card rounded-xl p-4 flex items-start gap-3 cursor-pointer hover:border-blue-400/60 hover:shadow-lg transition-all group relative overflow-hidden"
           >
             <div className="p-2.5 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0 group-hover:scale-105 transition-transform">
-              <span className="material-symbols-outlined text-[24px]">picture_as_pdf</span>
+              <FileText className="w-6 h-6 text-blue-300" />
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between gap-2">
@@ -360,7 +384,7 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
                   <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">Technical Spec</span>
                 </div>
                 <span className="text-[10px] font-bold text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
-                  Run <span className="material-symbols-outlined text-[12px]">play_arrow</span>
+                  Run <Play className="w-3 h-3 text-blue-300 fill-blue-300" />
                 </span>
               </div>
               <p className="text-[11px] text-on-surface-variant mt-1 leading-relaxed">

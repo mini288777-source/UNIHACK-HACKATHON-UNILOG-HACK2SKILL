@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { UploadCloud, Table, FileText, Sparkles, ArrowRight, AlertCircle } from 'lucide-react';
 
 interface DropzoneProps {
   onFileSelect: (file: File) => void;
@@ -88,9 +89,11 @@ export const Dropzone: React.FC<DropzoneProps> = ({ onFileSelect, isUploading })
         {selectedFile ? (
           <div className="flex flex-col items-center text-center">
             <div className="h-16 w-16 rounded-2xl bg-primary-container/20 border border-secondary-container/30 flex items-center justify-center text-secondary-container mb-3 shadow-lg">
-              <span className="material-symbols-outlined text-[32px]">
-                {isSpreadsheet ? 'table_view' : 'description'}
-              </span>
+              {isSpreadsheet ? (
+                <Table className="w-8 h-8 text-secondary-container" />
+              ) : (
+                <FileText className="w-8 h-8 text-secondary-container" />
+              )}
             </div>
             <div className="flex items-center gap-2 mb-1">
               <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider font-label ${
@@ -115,18 +118,18 @@ export const Dropzone: React.FC<DropzoneProps> = ({ onFileSelect, isUploading })
                 type="button"
                 onClick={handleUploadSubmit}
                 disabled={isUploading}
-                className="px-5 py-2.5 rounded-xl bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary text-xs font-bold transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(254,170,0,0.3)]"
+                className="px-5 py-2.5 rounded-xl bg-secondary-container hover:bg-secondary-fixed-dim text-on-secondary text-xs font-bold transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(254,170,0,0.3)] cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+                <Sparkles className="w-4 h-4 text-on-secondary" />
                 <span>Enrich into 252-Column Delivery Format</span>
-                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                <ArrowRight className="w-4 h-4 text-on-secondary" />
               </button>
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center text-center">
             <div className="h-16 w-16 rounded-2xl bg-primary-container/20 border border-secondary-container/30 flex items-center justify-center text-secondary-container mb-4 shadow-lg animate-float">
-              <span className="material-symbols-outlined text-[36px]">cloud_upload</span>
+              <UploadCloud className="w-9 h-9 text-secondary-container" />
             </div>
             <h4 className="text-base font-bold text-on-surface mb-1 font-headline">Drag & Drop Catalog Dataset or PDF</h4>
             <p className="text-xs text-on-surface-variant max-w-md mb-4 leading-relaxed font-body">
@@ -143,7 +146,7 @@ export const Dropzone: React.FC<DropzoneProps> = ({ onFileSelect, isUploading })
 
       {errorMessage && (
         <div className="mt-3 p-3 rounded-xl bg-error-container/20 border border-error/30 text-error text-xs flex items-center gap-2">
-          <span className="material-symbols-outlined text-[18px] text-error shrink-0">error</span>
+          <AlertCircle className="w-4 h-4 text-error shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}

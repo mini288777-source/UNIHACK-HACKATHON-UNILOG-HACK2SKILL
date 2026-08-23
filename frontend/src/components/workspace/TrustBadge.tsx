@@ -1,74 +1,78 @@
 import React from 'react';
 import { TrustStatus, KnowledgeType } from '../../types';
+import { CheckCircle2, ShieldCheck, AlertTriangle, AlertCircle, HelpCircle, BookOpen, Sliders, Layers, Sparkles } from 'lucide-react';
 
-const TRUST_CONFIG: Record<TrustStatus, { label: string; color: string; bg: string; border: string; glowClass: string; icon: string }> = {
-  VERIFIED: {
-    label: 'VERIFIED',
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/30',
-    glowClass: 'glow-ring-emerald',
-    icon: 'check_circle'
-  },
-  HIGH_CONFIDENCE: {
-    label: 'HIGH CONFIDENCE',
-    color: 'text-secondary-container',
-    bg: 'bg-secondary-container/10',
-    border: 'border-secondary-container/30',
-    glowClass: 'glow-ring-orange',
-    icon: 'verified_user'
-  },
-  NEEDS_REVIEW: {
-    label: 'NEEDS REVIEW',
-    color: 'text-secondary-container',
-    bg: 'bg-secondary-container/10',
-    border: 'border-secondary-container/30',
-    glowClass: 'glow-ring-orange',
-    icon: 'warning'
-  },
-  CONFLICT: {
-    label: 'CONFLICT',
-    color: 'text-error',
-    bg: 'bg-error-container/20',
-    border: 'border-error/30',
-    glowClass: 'glow-ring-rose',
-    icon: 'error'
-  },
-  UNKNOWN: {
-    label: 'UNKNOWN',
-    color: 'text-on-surface-variant',
-    bg: 'bg-surface-container-high/40',
-    border: 'border-outline-variant/30',
-    glowClass: '',
-    icon: 'help'
+export const TrustBadge: React.FC<{ status: TrustStatus }> = ({ status }) => {
+  switch (status) {
+    case 'VERIFIED':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border text-emerald-400 bg-emerald-500/10 border-emerald-500/30 glow-ring-emerald font-label uppercase tracking-wider">
+          <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+          <span>VERIFIED</span>
+        </span>
+      );
+    case 'HIGH_CONFIDENCE':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border text-secondary-container bg-secondary-container/10 border-secondary-container/30 glow-ring-orange font-label uppercase tracking-wider">
+          <ShieldCheck className="w-3 h-3 text-secondary-container shrink-0" />
+          <span>HIGH CONFIDENCE</span>
+        </span>
+      );
+    case 'NEEDS_REVIEW':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border text-secondary-container bg-secondary-container/10 border-secondary-container/30 glow-ring-orange font-label uppercase tracking-wider">
+          <AlertTriangle className="w-3 h-3 text-secondary-container shrink-0" />
+          <span>NEEDS REVIEW</span>
+        </span>
+      );
+    case 'CONFLICT':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border text-error bg-error-container/20 border-error/30 glow-ring-rose font-label uppercase tracking-wider">
+          <AlertCircle className="w-3 h-3 text-error shrink-0" />
+          <span>CONFLICT</span>
+        </span>
+      );
+    default:
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border text-on-surface-variant bg-surface-container-high/40 border-outline-variant/30 font-label uppercase tracking-wider">
+          <HelpCircle className="w-3 h-3 text-on-surface-variant shrink-0" />
+          <span>UNKNOWN</span>
+        </span>
+      );
   }
 };
 
-const KNOWLEDGE_CONFIG: Record<KnowledgeType, { label: string; icon: string; color: string; bg: string }> = {
-  EXPLICIT_FACT: { label: 'Explicit Fact', icon: 'menu_book', color: 'text-secondary-container', bg: 'bg-secondary-container/10' },
-  NORMALIZED_FACT: { label: 'Normalized Fact', icon: 'tune', color: 'text-tertiary', bg: 'bg-tertiary/10' },
-  DERIVED_INFO: { label: 'Derived Spec', icon: 'schema', color: 'text-primary-fixed', bg: 'bg-primary-fixed/10' },
-  INFERRED_INFO: { label: 'AI Inferred', icon: 'psychology', color: 'text-error', bg: 'bg-error/10' }
-};
-
-export const TrustBadge: React.FC<{ status: TrustStatus }> = ({ status }) => {
-  const cfg = TRUST_CONFIG[status] || TRUST_CONFIG.UNKNOWN;
-  return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border ${cfg.color} ${cfg.bg} ${cfg.border} ${cfg.glowClass} font-label uppercase tracking-wider`}>
-      <span className="material-symbols-outlined text-[13px]">{cfg.icon}</span>
-      <span>{cfg.label}</span>
-    </span>
-  );
-};
-
 export const KnowledgeBadge: React.FC<{ type: KnowledgeType }> = ({ type }) => {
-  const cfg = KNOWLEDGE_CONFIG[type] || KNOWLEDGE_CONFIG.EXPLICIT_FACT;
-  return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold border border-outline-variant/30 ${cfg.bg} ${cfg.color} font-label`}>
-      <span className="material-symbols-outlined text-[13px]">{cfg.icon}</span>
-      <span>{cfg.label}</span>
-    </span>
-  );
+  switch (type) {
+    case 'EXPLICIT_FACT':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold border border-outline-variant/30 bg-secondary-container/10 text-secondary-container font-label">
+          <BookOpen className="w-3 h-3 text-secondary-container shrink-0" />
+          <span>Explicit Fact</span>
+        </span>
+      );
+    case 'NORMALIZED_FACT':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold border border-outline-variant/30 bg-tertiary/10 text-tertiary font-label">
+          <Sliders className="w-3 h-3 text-tertiary shrink-0" />
+          <span>Normalized Fact</span>
+        </span>
+      );
+    case 'DERIVED_INFO':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold border border-outline-variant/30 bg-primary-fixed/10 text-primary-fixed font-label">
+          <Layers className="w-3 h-3 text-primary-fixed shrink-0" />
+          <span>Derived Spec</span>
+        </span>
+      );
+    default:
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold border border-outline-variant/30 bg-error/10 text-error font-label">
+          <Sparkles className="w-3 h-3 text-error shrink-0" />
+          <span>AI Inferred</span>
+        </span>
+      );
+  }
 };
 
 export const ConfidenceBar: React.FC<{ value: number }> = ({ value }) => {
