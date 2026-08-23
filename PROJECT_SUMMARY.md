@@ -147,7 +147,6 @@ UNIHACK PROJECT/
 ├── .gitignore
 ├── AGENTS.md
 ├── docker-compose.yml
-├── PRESENTATION_SLIDES.md
 ├── PROJECT_SUMMARY.md
 ├── walkthrough.md
 └── README.md

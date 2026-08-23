@@ -74,7 +74,6 @@ d:/UNIHACK PROJECT/
 │   ├── research/             # Exploration & Prompts
 │   └── design/               # UI/UX Reference Exports
 ├── SAMPLE DATASET AND SAMPLE OUTPUT/ # Official UniHack Input & Ground-Truth Baseline
-├── PRESENTATION_SLIDES.md    # Complete 15-Slide Presentation Deck Content
 ├── PROJECT_SUMMARY.md        # Comprehensive Structured Project Manual
 ├── walkthrough.md            # Comprehensive System Walkthrough & Verification Report
 ├── README.md                 # Developer Setup & Operating Instructions
