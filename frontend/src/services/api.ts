@@ -19,7 +19,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 4000,
+  timeout: 3000,
 });
 
 // Client-side in-memory & session storage cache for standalone Vercel demo
@@ -49,6 +49,12 @@ export const api = {
           'Content-Type': 'multipart/form-data',
         },
       });
+
+      // Verify that server returned a valid JSON object rather than HTML from static rewrite
+      if (typeof response.data === 'string' || !response.data || typeof response.data !== 'object' || !('id' in response.data)) {
+        throw new Error('Static host HTML response detected, fallback to in-browser PDF processor');
+      }
+
       return response.data;
     } catch {
       // Standalone Client-Side PDF Parser Simulation for Vercel
@@ -156,6 +162,7 @@ export const api = {
   async getDocument(documentId: string): Promise<SourceDocument> {
     try {
       const response = await apiClient.get<SourceDocument>(`/documents/${documentId}`);
+      if (typeof response.data === 'string' || !response.data) throw new Error('HTML response');
       return response.data;
     } catch {
       return {
@@ -178,11 +185,23 @@ export const api = {
           'Content-Type': 'multipart/form-data',
         },
       });
+
+      // Verify that server returned a valid JSON object rather than HTML from static rewrite
+      if (typeof response.data === 'string' || !response.data || typeof response.data !== 'object' || !('enriched_sku_count' in response.data)) {
+        throw new Error('Static host HTML response detected, fallback to client-side pipeline');
+      }
+
       return response.data;
     } catch (err) {
-      console.warn('Backend API offline or unreachable, falling back to Client-Side Enrichment Engine:', err);
+      console.warn('Backend API offline or static host detected, running In-Browser Client Enrichment Engine:', err);
       // Standalone Client-Side Enrichment Pipeline
-      const text = await file.text();
+      let text = '';
+      try {
+        text = await file.text();
+      } catch {
+        text = '';
+      }
+
       const parsedProducts = parseCSVClientSide(text);
       saveClientSideProducts(parsedProducts);
 
@@ -206,6 +225,9 @@ export const api = {
   async getMetrics(): Promise<CatalogMetrics> {
     try {
       const response = await apiClient.get<CatalogMetrics>('/enrich/metrics');
+      if (typeof response.data === 'string' || !response.data || typeof response.data !== 'object' || !('total_products' in response.data)) {
+        throw new Error('HTML response');
+      }
       return response.data;
     } catch {
       const prods = clientSideProducts;
@@ -234,6 +256,9 @@ export const api = {
   async getEvaluation(): Promise<EvaluationResult> {
     try {
       const response = await apiClient.get<EvaluationResult>('/enrich/evaluate');
+      if (typeof response.data === 'string' || !response.data || typeof response.data !== 'object' || !('overall_accuracy_pct' in response.data)) {
+        throw new Error('HTML response');
+      }
       return response.data;
     } catch {
       return runClientSideBenchmark();
@@ -244,6 +269,9 @@ export const api = {
   async getJobStatus(jobId: string): Promise<ProcessingJob> {
     try {
       const response = await apiClient.get<ProcessingJob>(`/jobs/${jobId}`);
+      if (typeof response.data === 'string' || !response.data || typeof response.data !== 'object' || !('status' in response.data)) {
+        throw new Error('HTML response');
+      }
       return response.data;
     } catch {
       return {
@@ -274,6 +302,9 @@ export const api = {
   async getProduct(productId: string): Promise<Product> {
     try {
       const response = await apiClient.get<Product>(`/products/${productId}`);
+      if (typeof response.data === 'string' || !response.data || typeof response.data !== 'object') {
+        throw new Error('HTML response');
+      }
       return response.data;
     } catch {
       const found = clientSideProducts.find(p => p.id === productId);
@@ -292,6 +323,9 @@ export const api = {
         `/products/${productId}/attributes/${attributeId}`,
         payload
       );
+      if (typeof response.data === 'string' || !response.data || typeof response.data !== 'object') {
+        throw new Error('HTML response');
+      }
       return response.data;
     } catch {
       const prod = clientSideProducts.find(p => p.id === productId);
