@@ -52,8 +52,25 @@ export const api = {
 
   // Real-time Intelligence Metrics & Quality Breakdown
   async getMetrics(): Promise<CatalogMetrics> {
-    const response = await apiClient.get<CatalogMetrics>('/enrich/metrics');
-    return response.data;
+    try {
+      const response = await apiClient.get<CatalogMetrics>('/enrich/metrics');
+      return response.data;
+    } catch {
+      return {
+        total_products: 0,
+        average_health_score: 0,
+        total_attributes: 0,
+        verified_attributes_count: 0,
+        review_required_count: 0,
+        category_distribution: {},
+        trust_status_breakdown: {
+          VERIFIED: 0,
+          HIGH_CONFIDENCE: 0,
+          NEEDS_REVIEW: 0,
+          CONFLICT: 0,
+        },
+      };
+    }
   },
 
   // Automated Ground-Truth Evaluation Benchmark
@@ -70,8 +87,16 @@ export const api = {
 
   // Product Workspace Endpoints
   async listProducts(skip: number = 0, limit: number = 100): Promise<Product[]> {
-    const response = await apiClient.get<Product[]>(`/products?skip=${skip}&limit=${limit}`);
-    return response.data;
+    try {
+      const response = await apiClient.get<Product[]>(`/products?skip=${skip}&limit=${limit}`);
+      if (Array.isArray(response.data)) {
+        return response.data;
+      }
+      return [];
+    } catch (err) {
+      console.warn('Backend products endpoint unavailable or empty:', err);
+      return [];
+    }
   },
 
   async getProduct(productId: string): Promise<Product> {
@@ -92,8 +117,12 @@ export const api = {
   },
 
   async getProductConflicts(productId: string): Promise<Conflict[]> {
-    const response = await apiClient.get<Conflict[]>(`/products/${productId}/conflicts`);
-    return response.data;
+    try {
+      const response = await apiClient.get<Conflict[]>(`/products/${productId}/conflicts`);
+      return Array.isArray(response.data) ? response.data : [];
+    } catch {
+      return [];
+    }
   },
 
   // Export URLs

@@ -56,42 +56,54 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const isReduced = document.documentElement.classList.contains('motion-reduced');
-    if (isReduced || !mainContentRef.current) return;
+    try {
+      const isReduced = typeof document !== 'undefined' && document.documentElement.classList.contains('motion-reduced');
+      if (isReduced || !mainContentRef.current) return;
 
-    gsap.fromTo(
-      mainContentRef.current,
-      { opacity: 0, y: 12 },
-      { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
-    );
+      gsap.fromTo(
+        mainContentRef.current,
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
+      );
+    } catch (e) {
+      console.warn('GSAP animation skipped:', e);
+    }
   }, [activeTab]);
 
   useEffect(() => {
-    if (activeTab !== 'dashboard' || products.length === 0) return;
-    const isReduced = document.documentElement.classList.contains('motion-reduced');
-    if (isReduced) return;
+    if (activeTab !== 'dashboard' || !Array.isArray(products) || products.length === 0) return;
+    try {
+      const isReduced = typeof document !== 'undefined' && document.documentElement.classList.contains('motion-reduced');
+      if (isReduced || !mainContentRef.current) return;
 
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        '.animate-card',
-        { opacity: 0, y: 12 },
-        { opacity: 1, y: 0, duration: 0.25, stagger: { amount: 0.15 }, ease: 'power2.out' }
-      );
-    }, mainContentRef);
+      const ctx = gsap.context(() => {
+        gsap.fromTo(
+          '.animate-card',
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.25, stagger: { amount: 0.15 }, ease: 'power2.out' }
+        );
+      }, mainContentRef);
 
-    return () => ctx.revert();
-  }, [activeTab, viewMode, products.length, selectedCategory]);
+      return () => {
+        try { ctx.revert(); } catch {}
+      };
+    } catch (e) {
+      console.warn('GSAP card animation skipped:', e);
+    }
+  }, [activeTab, viewMode, products, selectedCategory]);
 
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
       const data = await api.listProducts(0, 1000);
-      setProducts(data);
-      if (data.length > 0 && !selectedProductId) {
-        setSelectedProductId(data[0].id);
+      const safeData = Array.isArray(data) ? data : [];
+      setProducts(safeData);
+      if (safeData.length > 0 && !selectedProductId) {
+        setSelectedProductId(safeData[0].id);
       }
     } catch (err) {
       console.error('Failed to fetch products:', err);
+      setProducts([]);
     } finally {
       setIsLoading(false);
     }
@@ -118,36 +130,37 @@ export default function App() {
     }
   };
 
-  // Real Database-driven KPI Computations
-  const totalSkus = products.length;
+  // Real Database-driven KPI Computations with Defensive Array Checks
+  const safeProductList = useMemo(() => Array.isArray(products) ? products : [], [products]);
+  const totalSkus = safeProductList.length;
   const avgHealthScore = totalSkus > 0
-    ? Math.round(products.reduce((acc, p) => acc + (p.health_score || 0), 0) / totalSkus)
+    ? Math.round(safeProductList.reduce((acc, p) => acc + (p.health_score || 0), 0) / totalSkus)
     : 0;
 
   const flaggedProducts = useMemo(() => {
-    return products.filter(p => (p.health_score || 0) < 85);
-  }, [products]);
+    return safeProductList.filter(p => (p.health_score || 0) < 85);
+  }, [safeProductList]);
 
   const uniqueSuppliers = useMemo(() => {
-    const suppliers = new Set(products.map(p => p.manufacturer).filter(Boolean));
+    const suppliers = new Set(safeProductList.map(p => p.manufacturer).filter(Boolean));
     return suppliers.size;
-  }, [products]);
+  }, [safeProductList]);
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
-    products.forEach(p => {
+    safeProductList.forEach(p => {
       if (p.category) {
         const top = p.category.split('>')[0].trim();
         if (top) cats.add(top);
       }
     });
     return Array.from(cats);
-  }, [products]);
+  }, [safeProductList]);
 
   const filteredProducts = useMemo(() => {
-    return products.filter(p => {
+    return safeProductList.filter(p => {
       const matchesSearch = 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.sku || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.manufacturer || '').toLowerCase().includes(searchQuery.toLowerCase());
       
@@ -155,7 +168,7 @@ export default function App() {
 
       return matchesSearch && matchesCat;
     });
-  }, [products, searchQuery, selectedCategory]);
+  }, [safeProductList, searchQuery, selectedCategory]);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 50;
@@ -170,7 +183,7 @@ export default function App() {
     return filteredProducts.slice(start, start + pageSize);
   }, [filteredProducts, currentPage, pageSize]);
 
-  const selectedProduct = products.find(p => p.id === selectedProductId) || products[0];
+  const selectedProduct = safeProductList.find(p => p.id === selectedProductId) || safeProductList[0];
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-on-surface font-body antialiased selection:bg-secondary-container selection:text-on-secondary">

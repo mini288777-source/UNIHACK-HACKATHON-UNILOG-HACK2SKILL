@@ -8,17 +8,27 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, hasActiveProduct }) => {
   const [motionEnabled, setMotionEnabled] = useState<boolean>(() => {
-    const saved = localStorage.getItem('motion_enabled');
-    if (saved !== null) return saved === 'true';
-    return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem('motion_enabled') : null;
+      if (saved !== null) return saved === 'true';
+      return typeof window !== 'undefined' && window.matchMedia ? !window.matchMedia('(prefers-reduced-motion: reduce)').matches : true;
+    } catch {
+      return true;
+    }
   });
 
   useEffect(() => {
-    localStorage.setItem('motion_enabled', String(motionEnabled));
-    if (motionEnabled) {
-      document.documentElement.classList.remove('motion-reduced');
-    } else {
-      document.documentElement.classList.add('motion-reduced');
+    try {
+      localStorage.setItem('motion_enabled', String(motionEnabled));
+    } catch {
+      // Ignore localStorage write restrictions
+    }
+    if (typeof document !== 'undefined') {
+      if (motionEnabled) {
+        document.documentElement.classList.remove('motion-reduced');
+      } else {
+        document.documentElement.classList.add('motion-reduced');
+      }
     }
   }, [motionEnabled]);
 
