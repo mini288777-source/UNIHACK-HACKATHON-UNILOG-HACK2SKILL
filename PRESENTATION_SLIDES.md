@@ -602,7 +602,7 @@ Working, accessible links for GitHub repository, demonstration video, and runnin
 
 ### 4. Exact On-Slide Content (Copy-Paste Ready)
 * **Official UniHack Submission Deliverables**:
-  - **GitHub Public Repository**: https://github.com/mini288777-source/UNIHACK-KACKATHON-UNILOG-HACK2SKILL
+  - **GitHub Public Repository**: https://github.com/mini288777-source/UNIHACK-HACKATHON-UNILOG-HACK2SKILL
   - **Live Working Prototype**: `http://localhost:5173` (Docker: `docker-compose up`)
   - **3-Minute Video Demonstration**: `[YOUTUBE_OR_LOOM_DEMO_LINK]`
   - **Interactive API Swagger Docs**: `http://localhost:8000/docs`

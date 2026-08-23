@@ -202,6 +202,6 @@ Open **`http://localhost:5173/`** in your browser.
 git add .
 git commit -m "Initial release: Uni - Logger AI Industrial Product Intelligence Platform"
 git branch -M main
-git remote add origin https://github.com/mini288777-source/UNIHACK-KACKATHON-UNILOG-HACK2SKILL.git
+git remote add origin https://github.com/mini288777-source/UNIHACK-HACKATHON-UNILOG-HACK2SKILL.git
 git push -u origin main
 ```
