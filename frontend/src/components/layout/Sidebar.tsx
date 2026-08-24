@@ -26,7 +26,31 @@ const RANDOM_NAMES = [
   'Bhavani',
   'Lalitha',
   'Yellamma',
-  'Pochamma'
+  'Pochamma',
+  'Cat Burglar Nami',
+  'Straw Hat Luffy',
+  'Pirate Hunter Zoro',
+  'Black Leg Sanji',
+  'God Usopp',
+  'Cotton Candy Lover Chopper',
+  'Devil Child Robin',
+  'Iron Man Franky',
+  'Soul King Brook',
+  'Knight of the Sea Jinbe',
+  'Fire Fist Ace',
+  'Revolutionary Sabo',
+  'Red-Haired Shanks',
+  'Surgeon of Death Law',
+  'Captain Kid',
+  'Hawk-Eye Mihawk',
+  'Heavenly Demon Doflamingo',
+  'King of Beasts Kaido',
+  'Big Mom Charlotte Linlin',
+  'Blackbeard Marshall D. Teach',
+  'Red Dog Sakazuki',
+  'Ghost Princess Perona',
+  'Boa Hancock',
+  'Desert King Crocodile'
 ];
 
 interface SidebarProps {
