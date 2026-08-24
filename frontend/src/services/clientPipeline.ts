@@ -99,7 +99,7 @@ export function extractClientAttributes(desc: string, mfgPartNum: string): Produ
   const attrs: ProductAttribute[] = [];
   const text = `${desc} ${mfgPartNum}`.trim();
 
-  // 1. Dimensions / Fractions
+  // 1. Dimensions / Fractional Lengths & Diameters
   const dimMatch = text.match(/\b(\d+(?:\.\d+)?|\d+-\d+\/\d+|\d+\/\d+)\s*(?:in|inch|inches|"|mm|cm|ft)\b/i);
   if (dimMatch) {
     const normalized = convertDecimalToFraction(dimMatch[0]);
@@ -129,16 +129,52 @@ export function extractClientAttributes(desc: string, mfgPartNum: string): Produ
     });
   }
 
-  // 2. Voltage
-  const voltMatch = text.match(/\b(\d{2,3})\s*V(?:olt)?\b/i);
-  if (voltMatch) {
+  // 2. Electrical Power / Wattage (Lighting & Appliances)
+  const wattMatch = text.match(/\b(\d{2,4})\s*W(?:att)?\b/i);
+  if (wattMatch) {
     attrs.push({
       id: Math.random().toString(36).substring(2, 9),
       product_id: '',
-      name: 'Voltage Rating',
-      raw_value: voltMatch[1],
-      normalized_value: `${voltMatch[1]} V`,
-      unit: 'V',
+      name: 'Power / Wattage',
+      raw_value: wattMatch[0],
+      normalized_value: `${wattMatch[1]} W`,
+      unit: 'W',
+      knowledge_type: 'EXPLICIT_FACT',
+      trust_status: 'VERIFIED',
+      confidence: 0.97,
+      is_inferred: false,
+      evidence: {
+        id: Math.random().toString(36).substring(2, 9),
+        document_id: 'catalog-feed',
+        page_number: 1,
+        text_quote: `Electrical power consumption: "${wattMatch[0]}"`,
+        confidence_breakdown: {
+          evidence_exactness: 1.0,
+          schema_validity: 0.98,
+          source_agreement: 1.0,
+          known_value_match: 0.95
+        }
+      }
+    });
+  }
+
+  // 3. Lighting Bulb Shape & Form Factor
+  const bulbMatch = text.match(/\b(PAR\d{2}[A-Z]?|BR\d{2}|A\d{2}|B\d{2}|F\d{2}|CAND|ED\d{2}|T\d{1,2}|MR\d{2})\b/i);
+  if (bulbMatch) {
+    const rawForm = bulbMatch[1].toUpperCase();
+    let normForm = rawForm;
+    if (rawForm.startsWith('PAR')) normForm = `PAR Reflector (${rawForm})`;
+    else if (rawForm.startsWith('BR')) normForm = `Bulged Reflector (${rawForm})`;
+    else if (rawForm.startsWith('A')) normForm = `Standard Household (${rawForm})`;
+    else if (rawForm === 'CAND') normForm = `Candelabra Flame`;
+
+    attrs.push({
+      id: Math.random().toString(36).substring(2, 9),
+      product_id: '',
+      name: 'Bulb Shape & Form',
+      raw_value: bulbMatch[0],
+      normalized_value: normForm,
+      unit: '',
       knowledge_type: 'EXPLICIT_FACT',
       trust_status: 'VERIFIED',
       confidence: 0.96,
@@ -147,7 +183,138 @@ export function extractClientAttributes(desc: string, mfgPartNum: string): Produ
         id: Math.random().toString(36).substring(2, 9),
         document_id: 'catalog-feed',
         page_number: 1,
-        text_quote: `Catalog feed voltage: "${voltMatch[0]}"`,
+        text_quote: `Lamp envelope form factor: "${bulbMatch[0]}"`,
+        confidence_breakdown: {
+          evidence_exactness: 0.98,
+          schema_validity: 0.95,
+          source_agreement: 1.0,
+          known_value_match: 0.95
+        }
+      }
+    });
+  }
+
+  // 4. Color Temperature / Kelvin (Lighting)
+  const kelvinMatch = text.match(/\b(\d{2}k|\d{4}K|2700K|3000K|3500K|4000K|5000K|6500K)\b/i);
+  if (kelvinMatch) {
+    const rawK = kelvinMatch[1].toUpperCase();
+    let normK = rawK;
+    if (rawK === '27K' || rawK === '2700K') normK = '2700K (Warm White)';
+    else if (rawK === '30K' || rawK === '3000K') normK = '3000K (Soft White)';
+    else if (rawK === '40K' || rawK === '4000K') normK = '4000K (Cool White)';
+    else if (rawK === '50K' || rawK === '5000K') normK = '5000K (Daylight)';
+
+    attrs.push({
+      id: Math.random().toString(36).substring(2, 9),
+      product_id: '',
+      name: 'Color Temperature',
+      raw_value: kelvinMatch[0],
+      normalized_value: normK,
+      unit: 'K',
+      knowledge_type: 'NORMALIZED_FACT',
+      trust_status: 'VERIFIED',
+      confidence: 0.95,
+      is_inferred: false,
+      evidence: {
+        id: Math.random().toString(36).substring(2, 9),
+        document_id: 'catalog-feed',
+        page_number: 1,
+        text_quote: `CCT Color rating: "${kelvinMatch[0]}"`,
+        confidence_breakdown: {
+          evidence_exactness: 1.0,
+          schema_validity: 0.95,
+          source_agreement: 1.0,
+          known_value_match: 0.95
+        }
+      }
+    });
+  }
+
+  // 5. Base Type (Lighting)
+  const baseMatch = text.match(/\b(Med|Medium|Candelabra|Mogul|E26|E12|E39|GU10|G9)\b/i);
+  if (baseMatch) {
+    let normBase = baseMatch[1];
+    if (normBase.toLowerCase() === 'med') normBase = 'Medium Screw (E26)';
+    else if (normBase.toLowerCase() === 'candelabra') normBase = 'Candelabra Screw (E12)';
+
+    attrs.push({
+      id: Math.random().toString(36).substring(2, 9),
+      product_id: '',
+      name: 'Socket Base Type',
+      raw_value: baseMatch[0],
+      normalized_value: normBase,
+      unit: '',
+      knowledge_type: 'EXPLICIT_FACT',
+      trust_status: 'VERIFIED',
+      confidence: 0.94,
+      is_inferred: false,
+      evidence: {
+        id: Math.random().toString(36).substring(2, 9),
+        document_id: 'catalog-feed',
+        page_number: 1,
+        text_quote: `Lamp base socket specification: "${baseMatch[0]}"`,
+        confidence_breakdown: {
+          evidence_exactness: 0.95,
+          schema_validity: 0.95,
+          source_agreement: 1.0,
+          known_value_match: 0.95
+        }
+      }
+    });
+  }
+
+  // 6. Technology / Illumination / Motor Type
+  const techMatch = text.match(/\b(LED|CFL|Halogen|Brushless|Cordless|Lithium-Ion|XR)\b/i);
+  if (techMatch) {
+    let normTech = techMatch[1];
+    if (normTech.toUpperCase() === 'LED') normTech = 'Solid-State LED';
+    else if (normTech.toLowerCase() === 'brushless') normTech = 'Brushless High-Efficiency Motor';
+
+    attrs.push({
+      id: Math.random().toString(36).substring(2, 9),
+      product_id: '',
+      name: 'Core Technology',
+      raw_value: techMatch[0],
+      normalized_value: normTech,
+      unit: '',
+      knowledge_type: 'EXPLICIT_FACT',
+      trust_status: 'VERIFIED',
+      confidence: 0.96,
+      is_inferred: false,
+      evidence: {
+        id: Math.random().toString(36).substring(2, 9),
+        document_id: 'catalog-feed',
+        page_number: 1,
+        text_quote: `Core technology classification: "${techMatch[0]}"`,
+        confidence_breakdown: {
+          evidence_exactness: 1.0,
+          schema_validity: 0.95,
+          source_agreement: 1.0,
+          known_value_match: 0.95
+        }
+      }
+    });
+  }
+
+  // 7. Package Quantity / Multipack
+  const packMatch = text.match(/\b(\d{1,3})\s*(?:pk|pack|pc|piece|disc\/box|pair|set)\b/i);
+  if (packMatch) {
+    attrs.push({
+      id: Math.random().toString(36).substring(2, 9),
+      product_id: '',
+      name: 'Package Quantity',
+      raw_value: packMatch[0],
+      normalized_value: `${packMatch[1]} Pack`,
+      unit: 'pk',
+      knowledge_type: 'EXPLICIT_FACT',
+      trust_status: 'VERIFIED',
+      confidence: 0.95,
+      is_inferred: false,
+      evidence: {
+        id: Math.random().toString(36).substring(2, 9),
+        document_id: 'catalog-feed',
+        page_number: 1,
+        text_quote: `Package quantity count: "${packMatch[0]}"`,
         confidence_breakdown: {
           evidence_exactness: 1.0,
           schema_validity: 0.95,
@@ -158,19 +325,19 @@ export function extractClientAttributes(desc: string, mfgPartNum: string): Produ
     });
   }
 
-  // 3. Grit Rating
-  const gritMatch = text.match(/\b(\d{2,4})\s*(?:G|Grit)\b/i);
+  // 8. Abrasives / Grit Rating & Mesh
+  const gritMatch = text.match(/\b(P\d{2,4}|\d{2,4}\s*Grit|\d{2,4}G)\b/i);
   if (gritMatch) {
     attrs.push({
       id: Math.random().toString(36).substring(2, 9),
       product_id: '',
       name: 'Abrasive Grit',
-      raw_value: gritMatch[1],
-      normalized_value: `${gritMatch[1]} Grit`,
+      raw_value: gritMatch[0],
+      normalized_value: `${gritMatch[0].toUpperCase()} Grit`,
       unit: 'Grit',
       knowledge_type: 'EXPLICIT_FACT',
       trust_status: 'VERIFIED',
-      confidence: 0.95,
+      confidence: 0.97,
       is_inferred: false,
       evidence: {
         id: Math.random().toString(36).substring(2, 9),
@@ -179,16 +346,45 @@ export function extractClientAttributes(desc: string, mfgPartNum: string): Produ
         text_quote: `Abrasive grit rating: "${gritMatch[0]}"`,
         confidence_breakdown: {
           evidence_exactness: 1.0,
-          schema_validity: 0.90,
+          schema_validity: 0.95,
           source_agreement: 1.0,
-          known_value_match: 0.9
+          known_value_match: 0.95
         }
       }
     });
   }
 
-  // 4. Material / Finish
-  const matMatch = text.match(/\b(Stainless Steel|Carbon Steel|Brass|Aluminium|Polymer|Composite|Bronze|Zinc|Titanium|Ceramic)\b/i);
+  // 9. Blade Teeth Count (Cutting & Blades)
+  const teethMatch = text.match(/\b(\d{2,3})T\b/i);
+  if (teethMatch) {
+    attrs.push({
+      id: Math.random().toString(36).substring(2, 9),
+      product_id: '',
+      name: 'Tooth Count',
+      raw_value: teethMatch[0],
+      normalized_value: `${teethMatch[1]} Tooth`,
+      unit: 'T',
+      knowledge_type: 'EXPLICIT_FACT',
+      trust_status: 'VERIFIED',
+      confidence: 0.96,
+      is_inferred: false,
+      evidence: {
+        id: Math.random().toString(36).substring(2, 9),
+        document_id: 'catalog-feed',
+        page_number: 1,
+        text_quote: `Blade tooth count: "${teethMatch[0]}"`,
+        confidence_breakdown: {
+          evidence_exactness: 1.0,
+          schema_validity: 0.95,
+          source_agreement: 1.0,
+          known_value_match: 0.95
+        }
+      }
+    });
+  }
+
+  // 10. Material / Finish & Construction
+  const matMatch = text.match(/\b(Stainless Steel|Carbon Steel|Brass|Aluminium|Polymer|Composite|Bronze|Zinc|Titanium|Ceramic|Cast Iron|Copper)\b/i);
   if (matMatch) {
     attrs.push({
       id: Math.random().toString(36).substring(2, 9),
@@ -216,36 +412,65 @@ export function extractClientAttributes(desc: string, mfgPartNum: string): Produ
     });
   }
 
-  // 5. Sound Level / Noise (Appliances)
-  const soundMatch = text.match(/\b(\d{2})\s*(?:dBA|dB)\b/i);
-  if (soundMatch) {
+  // 11. Voltage Rating (Tools & Appliances)
+  const voltMatch = text.match(/\b(\d{2,3})\s*V(?:olt)?\b/i);
+  if (voltMatch && !attrs.some(a => a.name === 'Voltage Rating')) {
     attrs.push({
       id: Math.random().toString(36).substring(2, 9),
       product_id: '',
-      name: 'Sound Level',
-      raw_value: soundMatch[1],
-      normalized_value: `${soundMatch[1]} dBA`,
-      unit: 'dBA',
+      name: 'Voltage Rating',
+      raw_value: voltMatch[1],
+      normalized_value: `${voltMatch[1]} V`,
+      unit: 'V',
       knowledge_type: 'EXPLICIT_FACT',
       trust_status: 'VERIFIED',
-      confidence: 0.93,
+      confidence: 0.96,
       is_inferred: false,
       evidence: {
         id: Math.random().toString(36).substring(2, 9),
         document_id: 'catalog-feed',
         page_number: 1,
-        text_quote: `Decibel specification: "${soundMatch[0]}"`,
+        text_quote: `Catalog feed voltage: "${voltMatch[0]}"`,
         confidence_breakdown: {
           evidence_exactness: 1.0,
-          schema_validity: 0.9,
-          source_agreement: 0.9,
+          schema_validity: 0.95,
+          source_agreement: 1.0,
           known_value_match: 0.9
         }
       }
     });
   }
 
-  // Default fallback attribute if nothing specific was found in raw string
+  // 12. Fluid Capacity (Water Heaters & Chemicals)
+  const capMatch = text.match(/\b(\d{1,3})\s*(?:gal|gallon|qt|quart|liter|l)\b/i);
+  if (capMatch && !attrs.some(a => a.name === 'Dimensions / Sizing')) {
+    attrs.push({
+      id: Math.random().toString(36).substring(2, 9),
+      product_id: '',
+      name: 'Fluid Capacity',
+      raw_value: capMatch[0],
+      normalized_value: `${capMatch[1]} Gallons`,
+      unit: 'gal',
+      knowledge_type: 'NORMALIZED_FACT',
+      trust_status: 'VERIFIED',
+      confidence: 0.95,
+      is_inferred: false,
+      evidence: {
+        id: Math.random().toString(36).substring(2, 9),
+        document_id: 'catalog-feed',
+        page_number: 1,
+        text_quote: `Nominal volume capacity: "${capMatch[0]}"`,
+        confidence_breakdown: {
+          evidence_exactness: 1.0,
+          schema_validity: 0.95,
+          source_agreement: 1.0,
+          known_value_match: 0.95
+        }
+      }
+    });
+  }
+
+  // Default fallback attribute if nothing specific was found
   if (attrs.length === 0) {
     attrs.push({
       id: Math.random().toString(36).substring(2, 9),
@@ -256,7 +481,7 @@ export function extractClientAttributes(desc: string, mfgPartNum: string): Produ
       unit: '',
       knowledge_type: 'EXPLICIT_FACT',
       trust_status: 'VERIFIED',
-      confidence: 0.92,
+      confidence: 0.85,
       is_inferred: false,
       evidence: {
         id: Math.random().toString(36).substring(2, 9),
@@ -264,16 +489,70 @@ export function extractClientAttributes(desc: string, mfgPartNum: string): Produ
         page_number: 1,
         text_quote: `Item description verified: "${desc.slice(0, 60)}"`,
         confidence_breakdown: {
-          evidence_exactness: 0.95,
-          schema_validity: 0.95,
+          evidence_exactness: 0.90,
+          schema_validity: 0.85,
           source_agreement: 1.0,
-          known_value_match: 0.9
+          known_value_match: 0.85
         }
       }
     });
   }
 
   return attrs;
+}
+
+export function calculateProductHealthScore(
+  productName: string,
+  manufacturer: string,
+  sku: string,
+  attributes: ProductAttribute[]
+): number {
+  // 1. Attribute Completeness (0 to 35 pts): target is 4 attributes for full specification
+  const attrCount = attributes.length;
+  const completeness = Math.min(35, Math.round((attrCount / 4) * 35));
+
+  // 2. Exactness & Precision (0 to 30 pts): units and normalized facts
+  let precision = 0;
+  for (const a of attributes) {
+    if (a.unit) precision += 7;
+    if (a.knowledge_type === 'NORMALIZED_FACT' || a.name.includes('Power') || a.name.includes('Grit') || a.name.includes('Temperature')) {
+      precision += 5;
+    }
+  }
+  precision = Math.min(30, precision);
+
+  // 3. Manufacturer Resolution (0 to 20 pts)
+  let mfrScore = 0;
+  const mfrLower = (manufacturer || '').toLowerCase();
+  if (mfrLower && !mfrLower.includes('canonical') && !mfrLower.includes('standard') && !mfrLower.includes('unbranded')) {
+    mfrScore = 20; // Known tier-1 manufacturer
+  } else if (mfrLower) {
+    mfrScore = 12;
+  } else {
+    mfrScore = 5;
+  }
+
+  // 4. SKU & Identifier Quality (0 to 15 pts)
+  let skuScore = 0;
+  if (sku && sku.length >= 5 && !sku.startsWith('SKU-')) {
+    skuScore = 15;
+  } else if (sku) {
+    skuScore = 8;
+  }
+
+  // Base mathematical score
+  let baseScore = completeness + precision + mfrScore + skuScore;
+
+  // Deterministic pseudo-hash variance (-3 to +3) based on product characters
+  let hash = 0;
+  const key = `${sku}-${productName}`;
+  for (let j = 0; j < key.length; j++) {
+    hash = ((hash << 5) - hash) + key.charCodeAt(j);
+    hash |= 0;
+  }
+  const variance = (Math.abs(hash) % 7) - 3;
+
+  return Math.max(68, Math.min(99, baseScore + variance));
 }
 
 export function parseCSVClientSide(csvText: string): Product[] {
@@ -339,9 +618,11 @@ export function parseCSVClientSide(csvText: string): Product[] {
     }
 
     let rawCat = (catIdx >= 0 ? values[catIdx] : '') || '';
-    if (!rawCat || rawCat.toLowerCase().includes('supplies')) {
+    if (!rawCat || rawCat.toLowerCase().includes('supplies') || rawCat === 'Hardware & Fasteners') {
       const lower = (desc + ' ' + rawBrand).toLowerCase();
-      if (/blade|sanding|abranet|cut-off|grinding|disc|wheel|belt|abrasive|stikit/i.test(lower)) {
+      if (/led|lamp|bulb|cand|par30|br30|br40|a19|f15|b11|watt|cct|candelabra|lighting/i.test(lower)) {
+        rawCat = 'Lighting & Electrical';
+      } else if (/blade|sanding|abranet|cut-off|grinding|disc|wheel|belt|abrasive|stikit|hiolit/i.test(lower)) {
         rawCat = 'Abrasives';
       } else if (/screw|bolt|nut|fastener|anchor|washer|thread|cap screw|socket|din|iso/i.test(lower)) {
         rawCat = 'Fasteners';
@@ -354,20 +635,16 @@ export function parseCSVClientSide(csvText: string): Product[] {
       } else if (/box|packout|storage|cabinet|organizer|cart/i.test(lower)) {
         rawCat = 'Storage';
       } else {
-        rawCat = 'Hardware & Fasteners';
+        rawCat = 'Industrial Hardware';
       }
     }
 
     const cleanMfr = cleanVendorName(rawBrand);
     const attributes = extractClientAttributes(desc, partNum);
+    const healthScore = calculateProductHealthScore(desc, cleanMfr, partNum, attributes);
 
     const prodId = `prod-${i + 1}`;
     attributes.forEach(a => { a.product_id = prodId; });
-
-    let healthScore = 85;
-    if (attributes.length >= 3) healthScore = 95;
-    else if (attributes.length >= 1) healthScore = 90;
-    else healthScore = 80;
 
     products.push({
       id: prodId,
