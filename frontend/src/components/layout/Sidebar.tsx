@@ -269,7 +269,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, hasAc
                   <p className="text-xs font-bold text-on-surface truncate font-label uppercase tracking-wide" title={userName}>
                     {userName}
                   </p>
-                  <p className="text-[10px] text-on-surface-variant truncate font-label">Level 5 Full Admin Access!</p>
                 </div>
               </div>
 
