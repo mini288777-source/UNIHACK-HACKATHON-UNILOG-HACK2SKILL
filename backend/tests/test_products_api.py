@@ -131,4 +131,19 @@ async def test_products_api_endpoints(seed_product, test_db):
         assert "Product ID,Product Name" in csv_text
         assert "Hex Head Bolt M10 x 50mm" in csv_text
 
+        # 7. Reset Entire Database via /enrich/reset
+        reset_res = await client.post("/api/v1/enrich/reset")
+        assert reset_res.status_code == 200
+        assert reset_res.json()["status"] == "SUCCESS"
+
+        # Verify products count is now 0
+        list_after_reset = await client.get("/api/v1/products")
+        assert list_after_reset.status_code == 200
+        assert len(list_after_reset.json()) == 0
+
+        # 8. Clear via DELETE /products endpoint
+        clear_res = await client.delete("/api/v1/products")
+        assert clear_res.status_code == 200
+        assert clear_res.json()["status"] == "SUCCESS"
+
     app.dependency_overrides.clear()

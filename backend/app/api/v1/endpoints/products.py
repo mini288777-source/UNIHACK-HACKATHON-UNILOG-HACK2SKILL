@@ -129,3 +129,13 @@ def export_product_alias(
     """
     from app.api.v1.endpoints.export import export_product_data
     return export_product_data(product_id=product_id, format=format, db=db)
+
+
+@router.delete("", status_code=status.HTTP_200_OK)
+@router.post("/reset", status_code=status.HTTP_200_OK)
+def clear_all_products(db: Session = Depends(get_db)):
+    """
+    Direct endpoint to wipe all product records, documents, jobs, and audit history.
+    """
+    from app.api.v1.endpoints.enrichment import reset_entire_database
+    return reset_entire_database(db=db)

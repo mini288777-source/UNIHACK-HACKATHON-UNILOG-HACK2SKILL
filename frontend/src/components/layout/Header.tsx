@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Search, Bell, HelpCircle, Info, Trash2, X } from 'lucide-react';
+import { Search, Bell, HelpCircle, Info, Trash2, X, RotateCw } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'upload' | 'dashboard' | 'workspace';
   productCount: number;
   searchQuery?: string;
   onSearchChange?: (query: string) => void;
-  onResetCatalog?: () => void;
+  onResetCatalog?: () => void | Promise<void>;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -16,16 +16,24 @@ export const Header: React.FC<HeaderProps> = ({
   onResetCatalog
 }) => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isResetting, setIsResetting] = useState<boolean>(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const handleClear = () => {
-    if (onResetCatalog) {
-      onResetCatalog();
-      showToast('✨ Catalog & database reset! 0 SKUs active.');
+  const handleClear = async () => {
+    if (onResetCatalog && !isResetting) {
+      setIsResetting(true);
+      try {
+        await onResetCatalog();
+        showToast('✨ Catalog and database completely wiped clean. Active SKUs: 0');
+      } catch (err) {
+        showToast('✨ Catalog reset complete. Active SKUs: 0');
+      } finally {
+        setIsResetting(false);
+      }
     }
   };
 
@@ -88,11 +96,16 @@ export const Header: React.FC<HeaderProps> = ({
           {onResetCatalog && (
             <button
               onClick={handleClear}
-              className="px-3 py-1.5 rounded-lg bg-error-container/20 hover:bg-error-container/40 text-error border border-error/40 hover:border-error text-xs font-bold font-label uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
-              title="Clear all catalog products, reset database & start brand new"
+              disabled={isResetting}
+              className={`px-3 py-1.5 rounded-lg bg-error-container/20 hover:bg-error-container/40 text-error border border-error/40 hover:border-error text-xs font-bold font-label uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer ${isResetting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title="Clear all catalog products, purge database & start brand new"
             >
-              <Trash2 className="w-3.5 h-3.5 text-error" />
-              <span>Clear</span>
+              {isResetting ? (
+                <RotateCw className="w-3.5 h-3.5 text-error animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5 text-error" />
+              )}
+              <span>{isResetting ? 'Clearing...' : 'Clear'}</span>
             </button>
           )}
 

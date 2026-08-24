@@ -190,12 +190,23 @@ export function App() {
 
   const selectedProduct = safeProductList.find((p) => p.id === selectedProductId) || safeProductList[0] || null;
 
-  const handleResetCatalog = () => {
-    clearLocalClientProducts();
-    setProducts([]);
-    setSelectedProductId(null);
-    setEvalResult(null);
-    navigateTo('upload');
+  const handleResetCatalog = async () => {
+    setIsLoading(true);
+    try {
+      await api.resetDatabase();
+    } catch (err) {
+      console.warn('Backend reset call encountered error:', err);
+    } finally {
+      clearLocalClientProducts();
+      setProducts([]);
+      setSelectedProductId(null);
+      setEvalResult(null);
+      setSearchQuery('');
+      setSelectedCategory('ALL');
+      setCurrentPage(1);
+      setIsLoading(false);
+      navigateTo('upload');
+    }
   };
 
   return (

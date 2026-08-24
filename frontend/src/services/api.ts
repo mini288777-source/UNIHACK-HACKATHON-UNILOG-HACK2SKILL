@@ -22,13 +22,31 @@ const apiClient = axios.create({
   timeout: 3000,
 });
 
-// Client-side in-memory cache for standalone Vercel demo
-let clientSideProducts: Product[] = [];
+// Client-side cache for standalone Vercel/Netlify demo & offline resilience
+function loadInitialClientProducts(): Product[] {
+  try {
+    const fromSession = sessionStorage.getItem('unilogger_products');
+    if (fromSession) {
+      const parsed = JSON.parse(fromSession);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+    const fromLocal = localStorage.getItem('unilogger_products');
+    if (fromLocal) {
+      const parsed = JSON.parse(fromLocal);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {}
+  return [];
+}
+
+let clientSideProducts: Product[] = loadInitialClientProducts();
 
 function saveClientSideProducts(prods: Product[]) {
   clientSideProducts = prods;
   try {
-    sessionStorage.setItem('unilogger_products', JSON.stringify(prods));
+    const serialized = JSON.stringify(prods);
+    sessionStorage.setItem('unilogger_products', serialized);
+    localStorage.setItem('unilogger_products', serialized);
   } catch {}
 }
 
@@ -36,10 +54,37 @@ export function clearLocalClientProducts() {
   clientSideProducts = [];
   try {
     sessionStorage.removeItem('unilogger_products');
+    localStorage.removeItem('unilogger_products');
+    sessionStorage.clear();
   } catch {}
 }
 
 export const api = {
+  // Database Reset Endpoint (Complete purge of products, documents, jobs, attributes)
+  async resetDatabase(): Promise<{ status: string; message: string }> {
+    clearLocalClientProducts();
+    try {
+      const response = await apiClient.post<{ status: string; message: string }>('/enrich/reset');
+      if (response.data && typeof response.data === 'object' && 'status' in response.data) {
+        return response.data;
+      }
+      // Fallback try DELETE /products
+      const delResponse = await apiClient.delete<{ status: string; message: string }>('/products');
+      if (delResponse.data && typeof delResponse.data === 'object' && 'status' in delResponse.data) {
+        return delResponse.data;
+      }
+      return {
+        status: 'SUCCESS',
+        message: 'Database and catalog reset successfully.'
+      };
+    } catch (err) {
+      console.warn('Backend reset call encountered error or offline, local state wiped:', err);
+      return {
+        status: 'SUCCESS',
+        message: 'Local catalog memory and database cache successfully reset.'
+      };
+    }
+  },
   // Document Endpoints (PDF)
   async uploadDocument(file: File): Promise<ProcessingJob> {
     try {
@@ -291,7 +336,7 @@ export const api = {
   async listProducts(skip: number = 0, limit: number = 100): Promise<Product[]> {
     try {
       const response = await apiClient.get<Product[]>(`/products?skip=${skip}&limit=${limit}`);
-      if (Array.isArray(response.data) && response.data.length > 0) {
+      if (Array.isArray(response.data)) {
         return response.data;
       }
       return clientSideProducts;

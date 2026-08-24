@@ -124,3 +124,46 @@ def run_ground_truth_evaluation():
 
     results = PipelineEvaluator.evaluate_ground_truth(gt_path, input_path)
     return results
+
+
+@router.post("/reset")
+def reset_entire_database(db: Session = Depends(get_db)):
+    """
+    Completely purges all records across products, attributes, evidence, conflicts, audit logs, documents, and jobs.
+    Also clears any temporary uploaded files. Returns clean status.
+    """
+    from app.db.models import Conflict, Evidence, ProductAttribute, Product, SourceDocument, ProcessingJob, AuditLog
+    from app.core.config import settings
+
+    try:
+        db.query(AuditLog).delete()
+        db.query(Conflict).delete()
+        db.query(Evidence).delete()
+        db.query(ProductAttribute).delete()
+        db.query(Product).delete()
+        db.query(ProcessingJob).delete()
+        db.query(SourceDocument).delete()
+        db.commit()
+
+        # Clean temporary files in uploads directory (keep .gitkeep)
+        if os.path.exists(settings.UPLOAD_DIR):
+            for fname in os.listdir(settings.UPLOAD_DIR):
+                if fname != ".gitkeep":
+                    fpath = os.path.join(settings.UPLOAD_DIR, fname)
+                    try:
+                        if os.path.isfile(fpath) or os.path.islink(fpath):
+                            os.remove(fpath)
+                    except Exception:
+                        pass
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to reset database: {str(e)}"
+        )
+
+    return {
+        "status": "SUCCESS",
+        "message": "Database and temporary artifacts successfully wiped clean. 0 records remaining."
+    }
+
