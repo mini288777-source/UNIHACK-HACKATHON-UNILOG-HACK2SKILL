@@ -128,7 +128,7 @@
   transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Custom Floating Animations */
+/* Custom Floating & Spinning Animations */
 @keyframes float {
   0% { transform: translateY(0px) rotate(0deg); }
   50% { transform: translateY(-5px) rotate(0.5deg); }
@@ -137,6 +137,15 @@
 
 .animate-float {
   animation: float 5s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 6s linear infinite;
 }
 
 /* Custom High-Density Scrollbars */

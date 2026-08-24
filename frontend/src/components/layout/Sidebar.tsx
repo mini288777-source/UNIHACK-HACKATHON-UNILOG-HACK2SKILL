@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UploadCloud, Boxes, Cpu, Plus, Eye, EyeOff, Pencil, Dices, Check, X } from 'lucide-react';
+import { UploadCloud, Boxes, Cpu, Plus, Sparkles, Pencil, Dices, Check, X } from 'lucide-react';
 
 const RANDOM_NAMES = [
   'Shiva',
@@ -228,6 +228,43 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, hasAc
           <span>New Analysis</span>
         </button>
 
+        {/* Dynamic Animations & Motion FX Control (Placed clearly just above User Name) */}
+        <button
+          type="button"
+          onClick={() => setMotionEnabled(!motionEnabled)}
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-label font-bold transition-all duration-300 border cursor-pointer ${
+            motionEnabled
+              ? 'bg-secondary-container/15 text-secondary-container border-secondary-container/50 shadow-[0_0_14px_rgba(254,170,0,0.25)]'
+              : 'bg-surface-container-high/40 text-on-surface-variant border-outline-variant/30 hover:border-outline-variant/60'
+          }`}
+          title={motionEnabled ? "Interface Animations Active (Click to mute/reduce motion)" : "Interface Animations Muted (Click to enable animations)"}
+        >
+          <div className="flex items-center space-x-2.5">
+            <div className={`p-1.5 rounded-lg transition-all ${
+              motionEnabled ? 'bg-secondary-container/25 text-secondary-container' : 'bg-surface-container-highest text-on-surface-variant'
+            }`}>
+              <Sparkles className={`w-3.5 h-3.5 ${motionEnabled ? 'animate-spin-slow text-secondary-container' : 'text-on-surface-variant'}`} />
+            </div>
+            <div className="text-left">
+              <span className="block text-[11px] font-bold tracking-wider uppercase">
+                {motionEnabled ? 'Animations: ON' : 'Animations: OFF'}
+              </span>
+              <span className="block text-[9px] text-on-surface-variant font-mono font-normal">
+                {motionEnabled ? 'Micro-motion active' : 'Static performance mode'}
+              </span>
+            </div>
+          </div>
+
+          {/* Toggle Indicator */}
+          <div className={`w-8 h-4.5 rounded-full p-0.5 transition-colors duration-300 flex items-center ${
+            motionEnabled ? 'bg-secondary-container justify-end' : 'bg-surface-container-highest justify-start'
+          }`}>
+            <span className={`w-3.5 h-3.5 rounded-full transition-transform duration-300 shadow-sm ${
+              motionEnabled ? 'bg-on-secondary animate-pulse' : 'bg-on-surface-variant/70'
+            }`} />
+          </div>
+        </button>
+
         {/* User / Node Status Footer with Editable Name & Random Divine Dice */}
         <div className="pt-2 border-t border-outline-variant/20 px-1">
           {isEditingName ? (
@@ -272,14 +309,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, hasAc
                 </div>
               </div>
 
-              {/* Action Icons: Edit Pencil, Divine Random Dice, Motion Toggle */}
+              {/* Action Icons: Edit Pencil, Divine Random Dice */}
               <div className="flex items-center space-x-1 shrink-0 ml-1">
                 <button
                   onClick={() => {
                     setTempName(userName);
                     setIsEditingName(true);
                   }}
-                  className="p-1 rounded text-on-surface-variant hover:text-secondary-container hover:bg-surface-container-high transition-all cursor-pointer"
+                  className="p-1.5 rounded-lg text-on-surface-variant hover:text-secondary-container hover:bg-surface-container-high transition-all cursor-pointer"
                   title="Edit user name (keep custom name)"
                 >
                   <Pencil className="w-3.5 h-3.5" />
@@ -288,24 +325,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, hasAc
                 <button
                   onClick={rollRandomName}
                   disabled={isRolling}
-                  className={`p-1 rounded text-on-surface-variant hover:text-secondary-container hover:bg-surface-container-high transition-all cursor-pointer ${
+                  className={`p-1.5 rounded-lg text-on-surface-variant hover:text-secondary-container hover:bg-surface-container-high transition-all cursor-pointer ${
                     isRolling ? 'rotate-180 transition-transform duration-300 text-secondary-container' : ''
                   }`}
-                  title="Roll random name from divine list (Shiva, Krishna, Durga...)"
+                  title="Roll random name (Shiva, Straw Hat Luffy, Zoro...)"
                 >
                   <Dices className="w-3.5 h-3.5" />
-                </button>
-
-                <button
-                  onClick={() => setMotionEnabled(!motionEnabled)}
-                  className="p-1 rounded text-on-surface-variant hover:text-secondary-container hover:bg-surface-container-high transition-colors cursor-pointer"
-                  title={motionEnabled ? "Reduce Motion" : "Enable Motion"}
-                >
-                  {motionEnabled ? (
-                    <Eye className="w-3.5 h-3.5 text-on-surface-variant" />
-                  ) : (
-                    <EyeOff className="w-3.5 h-3.5 text-on-surface-variant" />
-                  )}
                 </button>
               </div>
             </div>
