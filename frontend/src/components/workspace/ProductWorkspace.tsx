@@ -67,22 +67,13 @@ export const ProductWorkspace: React.FC<ProductWorkspaceProps> = ({
   };
 
   const handleExportProduct = (format: 'json' | 'csv' | 'delivery_format_csv' | 'xlsx') => {
-    const url = api.getExportUrl(product.id, format);
-    window.open(url, '_blank');
+    api.exportSingleProductDirect(product, format === 'delivery_format_csv' ? 'csv' : format);
+    setDownloadSuccess(`Product exported in ${format.toUpperCase()} format!`);
+    setTimeout(() => setDownloadSuccess(null), 3000);
   };
 
   const handleExportFullCatalog = (format: 'csv' | 'xlsx') => {
-    const url = api.getCatalogExportUrl(format);
-    if (url.startsWith('data:')) {
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Unihack_252_Delivery_Catalog.${format}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      window.open(url, '_blank');
-    }
+    api.exportCatalogDirect(format);
     setDownloadSuccess(`Catalog exported in 252-Column ${format.toUpperCase()} format!`);
     setTimeout(() => setDownloadSuccess(null), 3000);
   };

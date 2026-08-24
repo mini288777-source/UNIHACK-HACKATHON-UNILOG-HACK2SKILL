@@ -155,17 +155,7 @@ export function App() {
   };
 
   const handleExportCatalog = (format: 'csv' | 'xlsx') => {
-    const url = api.getCatalogExportUrl(format);
-    if (url.startsWith('data:')) {
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Unihack_252_Delivery_Catalog.${format}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
-      window.open(url, '_blank');
-    }
+    api.exportCatalogDirect(format, safeProductList);
   };
 
   // Safe guarded Product List calculations

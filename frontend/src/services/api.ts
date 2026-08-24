@@ -10,6 +10,7 @@ import {
   EnrichmentResult
 } from '../types';
 import { parseCSVClientSide, runClientSideBenchmark } from './clientPipeline';
+import { exportCatalogToXLSX, exportCatalogToCSV } from './catalogExporter';
 
 const BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 const API_BASE_URL = `${BASE_URL}/api/v1`;
@@ -398,45 +399,40 @@ export const api = {
     }
   },
 
-  // Export URLs & Client-Side CSV Download Generator
+  // Export URLs & Client-Side Download Generator
   getExportUrl(productId: string, format: 'json' | 'csv' | 'delivery_format_csv' | 'xlsx'): string {
     return `${API_BASE_URL}/export/products/${productId}?format=${format}`;
   },
 
-  getCatalogExportUrl(format: 'csv' | 'xlsx'): string {
-    if (BASE_URL) {
-      return `${API_BASE_URL}/export/catalog?format=${format}`;
+  exportCatalogDirect(format: 'csv' | 'xlsx', productsList?: Product[]) {
+    const list = productsList && productsList.length > 0 ? productsList : clientSideProducts;
+    if (format === 'xlsx') {
+      exportCatalogToXLSX(list);
+    } else {
+      exportCatalogToCSV(list);
     }
-    // Generate data URL for client-side download
-    const headers = [
-      'ITEM_ID', 'MFG_NAME', 'MFG_PROD_NUM', 'PART_DESCRIPTION', 'INVOICE_DESC', 'MOBILE_DESC', 'SHORT_DESC',
-      'ITEM_FEATURES_1', 'ITEM_FEATURES_2', 'ITEM_FEATURES_3',
-      'ATTRIBUTE_LABEL_1', 'ATTRIBUTE_VALUE_1', 'ATTRIBUTE_UOM_1',
-      'ATTRIBUTE_LABEL_2', 'ATTRIBUTE_VALUE_2', 'ATTRIBUTE_UOM_2',
-      'HEALTH_SCORE', 'TRUST_STATUS'
-    ];
-    const rows = clientSideProducts.map(p => [
-      `"${p.sku || p.id}"`,
-      `"${p.manufacturer || ''}"`,
-      `"${p.sku || ''}"`,
-      `"${(p.name || '').replace(/"/g, '""')}"`,
-      `"${(p.sku + ' ' + p.name).substring(0, 35).toUpperCase().replace(/"/g, '""')}"`,
-      `"${(p.name || '').substring(0, 150).replace(/"/g, '""')}"`,
-      `"${(p.name || '').substring(0, 200).replace(/"/g, '""')}"`,
-      `"${p.attributes[0]?.normalized_value || ''}"`,
-      `"${p.attributes[1]?.normalized_value || ''}"`,
-      `"${p.attributes[2]?.normalized_value || ''}"`,
-      `"${p.attributes[0]?.name || ''}"`,
-      `"${p.attributes[0]?.normalized_value || ''}"`,
-      `"${p.attributes[0]?.unit || ''}"`,
-      `"${p.attributes[1]?.name || ''}"`,
-      `"${p.attributes[1]?.normalized_value || ''}"`,
-      `"${p.attributes[1]?.unit || ''}"`,
-      `"${p.health_score}%"`,
-      `"${p.health_score >= 85 ? 'VERIFIED' : 'NEEDS_REVIEW'}"`
-    ].join(','));
+  },
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent([headers.join(','), ...rows].join('\n'));
-    return csvContent;
+  exportSingleProductDirect(product: Product, format: 'json' | 'csv' | 'xlsx') {
+    if (format === 'json') {
+      const jsonStr = JSON.stringify(product, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Unihack_Product_${product.sku || product.id}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else if (format === 'xlsx') {
+      exportCatalogToXLSX([product], `Unihack_252_${product.sku || product.id}.xlsx`);
+    } else {
+      exportCatalogToCSV([product], `Unihack_252_${product.sku || product.id}.csv`);
+    }
+  },
+
+  getCatalogExportUrl(format: 'csv' | 'xlsx'): string {
+    return `${API_BASE_URL}/export/catalog?format=${format}`;
   },
 };
