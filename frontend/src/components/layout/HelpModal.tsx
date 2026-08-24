@@ -189,7 +189,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
           <div className="p-3.5 rounded-xl bg-surface-container-high/40 border border-outline-variant/30 text-[11px] space-y-1">
             <span className="font-bold text-on-surface">💡 Quick Navigation Tips:</span>
             <ul className="list-disc list-inside space-y-0.5 text-on-surface-variant">
-              <li>Type any page number directly into the pagination box to jump instantly across 84 pages.</li>
+              <li>Type any page number directly into the pagination box to jump instantly across any number of pages.</li>
               <li>Click the <strong>Clear</strong> button in the top header anytime to wipe the database and start fresh.</li>
               <li>Toggle Motion Effects in the bottom sidebar anytime to switch between smooth animations and static mode.</li>
             </ul>
