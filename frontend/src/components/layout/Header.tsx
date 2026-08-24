@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Bell, HelpCircle, Info, Trash2, X, RotateCw } from 'lucide-react';
+import { HelpModal } from './HelpModal';
 
 interface HeaderProps {
   activeTab: 'upload' | 'dashboard' | 'workspace';
@@ -17,6 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState<boolean>(false);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState<boolean>(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -35,32 +37,6 @@ export const Header: React.FC<HeaderProps> = ({
         setIsResetting(false);
       }
     }
-  };
-
-  const handleOpenFeedbackMail = () => {
-    const email = 'charantejakaluvoyi@gmail.com';
-    const subject = encodeURIComponent('Uni - Logger AI — User Feedback & Feature Suggestions');
-    const body = encodeURIComponent(
-      'Hi Charan,\n\nI tested Uni - Logger AI and wanted to share my feedback / appreciation / suggestions:\n\n' +
-      '• Feedback / Review:\n\n' +
-      '• Suggested Changes / Improvements:\n\n' +
-      '• Appreciation & Experience:\n\n' +
-      'Best regards,\n'
-    );
-
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`;
-    const mailtoUrl = `mailto:${email}?subject=${subject}&body=${body}`;
-
-    try {
-      const newWin = window.open(gmailUrl, '_blank', 'noopener,noreferrer');
-      if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
-        window.location.href = mailtoUrl;
-      }
-    } catch {
-      window.location.href = mailtoUrl;
-    }
-
-    showToast('📬 Opening Gmail to send feedback to charantejakaluvoyi@gmail.com');
   };
 
   return (
@@ -140,15 +116,18 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <button
-            onClick={handleOpenFeedbackMail}
+            onClick={() => setIsHelpModalOpen(true)}
             className="text-on-surface-variant hover:text-secondary-container hover:bg-surface-container-high/60 transition-all p-1.5 rounded-lg flex items-center justify-center cursor-pointer active:scale-95"
-            title="Send Feedback, Suggestions & Feature Requests (charantejakaluvoyi@gmail.com)"
-            aria-label="Send Feedback via Gmail"
+            title="Help, System Guide & Feedback"
+            aria-label="Open Help and Feedback Modal"
           >
             <HelpCircle className="w-5 h-5 text-on-surface-variant hover:text-secondary-container transition-colors" />
           </button>
         </div>
       </header>
+
+      {/* Interactive System Guide & Developer Feedback Modal */}
+      <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
     </>
   );
 };
