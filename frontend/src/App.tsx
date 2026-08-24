@@ -37,7 +37,38 @@ export function App() {
   const [evalResult, setEvalResult] = useState<EvaluationResult | null>(null);
   const [isRunningEval, setIsRunningEval] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageInput, setPageInput] = useState<string>('1');
   const pageSize = 12;
+
+  // Keep typed pageInput synced when currentPage changes via buttons/filters
+  useEffect(() => {
+    setPageInput(String(currentPage));
+  }, [currentPage]);
+
+  const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPageInput(e.target.value);
+  };
+
+  const handlePageInputCommit = () => {
+    const parsed = parseInt(pageInput, 10);
+    if (isNaN(parsed) || parsed < 1) {
+      setCurrentPage(1);
+      setPageInput('1');
+    } else if (parsed > totalPages) {
+      setCurrentPage(totalPages);
+      setPageInput(String(totalPages));
+    } else {
+      setCurrentPage(parsed);
+      setPageInput(String(parsed));
+    }
+  };
+
+  const handlePageInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handlePageInputCommit();
+      (e.target as HTMLInputElement).blur();
+    }
+  };
 
   const mainContentRef = useRef<HTMLDivElement>(null);
 
@@ -677,9 +708,9 @@ export function App() {
                   </div>
                 )}
 
-                {/* Fast Pagination Bar */}
+                {/* Fast Pagination Bar with Direct Page Jump */}
                 {filteredProducts.length > pageSize && (
-                  <div className="flex items-center justify-between pt-4 px-2 text-xs font-label">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 px-2 text-xs font-label">
                     <span className="text-on-surface-variant text-[11px]">
                       Showing <strong className="text-on-surface font-mono">{(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredProducts.length)}</strong> of <strong className="text-secondary-container font-mono">{filteredProducts.length}</strong> items
                     </span>
@@ -688,17 +719,32 @@ export function App() {
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
                         className="px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface disabled:opacity-40 disabled:cursor-not-allowed border border-outline-variant/30 transition-all font-bold flex items-center gap-1 cursor-pointer"
+                        title="Previous Page"
                       >
                         <ChevronLeft className="w-4 h-4" />
                         <span>Previous</span>
                       </button>
-                      <span className="font-mono text-on-surface px-2">
-                        {currentPage} / {totalPages}
-                      </span>
+
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-high/60 border border-outline-variant/30 text-on-surface" title="Type page number and press Enter to jump">
+                        <input
+                          type="number"
+                          min={1}
+                          max={totalPages}
+                          value={pageInput}
+                          onChange={handlePageInputChange}
+                          onBlur={handlePageInputCommit}
+                          onKeyDown={handlePageInputKeyDown}
+                          className="w-12 text-center font-mono text-xs font-bold bg-surface-container-lowest text-secondary-container border border-secondary-container/40 focus:border-secondary-container rounded px-1 py-0.5 outline-none transition-all shadow-inner focus:ring-1 focus:ring-secondary-container"
+                          aria-label="Current page number"
+                        />
+                        <span className="font-mono text-on-surface-variant text-xs select-none">/ {totalPages}</span>
+                      </div>
+
                       <button
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
                         className="px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface disabled:opacity-40 disabled:cursor-not-allowed border border-outline-variant/30 transition-all font-bold flex items-center gap-1 cursor-pointer"
+                        title="Next Page"
                       >
                         <span>Next</span>
                         <ChevronRight className="w-4 h-4" />
