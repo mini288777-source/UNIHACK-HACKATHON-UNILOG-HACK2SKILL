@@ -311,11 +311,12 @@ export function parseCSVClientSide(csvText: string): Product[] {
 
   const headers = parseLine(firstLine);
   const partNumIdx = headers.findIndex(h => /mfg_part|part_num|sku|item_id|part_number|item|id/i.test(h));
-  const descIdx = headers.findIndex(h => /desc|description|title|name|product/i.test(h));
-  const brandIdx = headers.findIndex(h => /brand|mfg|manufacturer|vendor/i.test(h));
+  const descIdx = headers.findIndex(h => /part_desc|desc|description|title|name|product/i.test(h));
+  const manufIdx = headers.findIndex(h => /part_manuf|manufacturer|vendor|mfr/i.test(h));
+  const brandIdx = headers.findIndex(h => /unilog_brand|e1_brand|dib_brand|brand/i.test(h));
   const catIdx = headers.findIndex(h => /category|class|segment|type/i.test(h));
 
-  const hasHeaderRow = partNumIdx >= 0 || descIdx >= 0 || brandIdx >= 0;
+  const hasHeaderRow = partNumIdx >= 0 || descIdx >= 0 || brandIdx >= 0 || manufIdx >= 0;
   const startRow = (hasHeaderRow && rawLines.length > 1) ? 1 : 0;
 
   const products: Product[] = [];
@@ -327,19 +328,46 @@ export function parseCSVClientSide(csvText: string): Product[] {
 
     const partNum = (partNumIdx >= 0 ? values[partNumIdx] : '') || values[0] || `SKU-${i + 1}`;
     const desc = (descIdx >= 0 ? values[descIdx] : '') || values[1] || values[0] || `Industrial Product ${i + 1}`;
-    const rawBrand = (brandIdx >= 0 ? values[brandIdx] : '') || values[2] || '';
-    const rawCat = (catIdx >= 0 ? values[catIdx] : '') || 'Industrial Supplies';
+    
+    let rawBrand = '';
+    if (manufIdx >= 0 && values[manufIdx]) {
+      rawBrand = values[manufIdx];
+    } else if (brandIdx >= 0 && values[brandIdx]) {
+      rawBrand = values[brandIdx];
+    } else {
+      rawBrand = values[2] || '';
+    }
+
+    let rawCat = (catIdx >= 0 ? values[catIdx] : '') || '';
+    if (!rawCat || rawCat.toLowerCase().includes('supplies')) {
+      const lower = (desc + ' ' + rawBrand).toLowerCase();
+      if (/blade|sanding|abranet|cut-off|grinding|disc|wheel|belt|abrasive|stikit/i.test(lower)) {
+        rawCat = 'Abrasives';
+      } else if (/screw|bolt|nut|fastener|anchor|washer|thread|cap screw|socket|din|iso/i.test(lower)) {
+        rawCat = 'Fasteners';
+      } else if (/drill|driver|impact|saw|grinder|tool|brushless|kit/i.test(lower)) {
+        rawCat = 'Power Tools';
+      } else if (/heater|water heater|appliance|refrigerator|pump|oven/i.test(lower)) {
+        rawCat = 'Appliances';
+      } else if (/decking|board|lumber|trim|railing|composite|trex/i.test(lower)) {
+        rawCat = 'Building Materials';
+      } else if (/box|packout|storage|cabinet|organizer|cart/i.test(lower)) {
+        rawCat = 'Storage';
+      } else {
+        rawCat = 'Hardware & Fasteners';
+      }
+    }
 
     const cleanMfr = cleanVendorName(rawBrand);
     const attributes = extractClientAttributes(desc, partNum);
 
-    const prodId = `prod-${Date.now()}-${i + 1}`;
+    const prodId = `prod-${i + 1}`;
     attributes.forEach(a => { a.product_id = prodId; });
 
     let healthScore = 85;
     if (attributes.length >= 3) healthScore = 95;
     else if (attributes.length >= 1) healthScore = 90;
-    else healthScore = 75;
+    else healthScore = 80;
 
     products.push({
       id: prodId,

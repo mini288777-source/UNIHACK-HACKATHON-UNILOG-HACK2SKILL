@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Dropzone } from '../components/upload/Dropzone';
 import { ProcessingStatus } from '../components/upload/ProcessingStatus';
 import { api } from '../services/api';
+import { OFFICIAL_UNIHACK_INPUT_CSV } from '../services/officialSampleData';
 import { gsap } from 'gsap';
 import { EvaluationResult } from '../types';
 import {
@@ -330,14 +331,15 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onUploadSuccess }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div 
             onClick={async () => {
-              const sampleContent = `Mfg_Part_Num,Part_Desc,Brand_Name,Category,Raw_UOM,Price
-DIN933-M8-30,Hex Cap Screw M8x30mm Full Thread Stainless Steel A2-70,FASTENCO,Fasteners,8mm x 30mm,12.50
-48-22-8424,PACKOUT Modular Tool Box System Polymer Heavy Duty,MILWAUKEE,Storage,22 in x 16 in,89.00
-DCD791B,20V MAX XR Lithium-Ion Brushless 1/2 in Compact Drill Driver,DEWALT,Power Tools,1/2 in,139.00
-D0724R,7-1/4 IN 24T FRAMING BLADE,Freud Inc (2435),Abrasives,7-1/4 in,14.99
-RTEX-50,Trex Transcend 50.25 in Decking Composite Board Vintage Lantern,Trex Company Inc,Building Materials,50.25 in,42.50
-XE50T12ST45U1,50 Gallon 4500W Electric Water Heater 240V,Rheem Water Heaters (9021),Appliances,50 gal,629.00`;
-              const blob = new Blob([sampleContent], { type: 'text/csv' });
+              let content = OFFICIAL_UNIHACK_INPUT_CSV;
+              try {
+                const res = await fetch('/Unihack_Sample_Dataset_Input.csv');
+                if (res.ok) {
+                  const txt = await res.text();
+                  if (txt && txt.length > 5000) content = txt;
+                }
+              } catch {}
+              const blob = new Blob([content], { type: 'text/csv' });
               const sampleFile = new File([blob], 'Unihack_Sample_Dataset_Input.csv', { type: 'text/csv' });
               handleFileSelect(sampleFile);
             }}
